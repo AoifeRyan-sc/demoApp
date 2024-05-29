@@ -40,20 +40,29 @@ searchServer <- function(id, r) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    example_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
-
-    multi_qa_matrix_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings.rds") %>%
-      as.matrix()
+    # cosmetic_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
+    # 
+    # cosmetic_sentences_embeddings <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings.rds") %>%
+      # as.matrix()
     
-    # Reactive values to store intermediate data
-    # reactive_vals <- reactiveValues(
-    #   example_sentences_2 = NULL,
-    #   dataframe = NULL,
-    #   grey_points = NULL,
-    #   highlight_points = NULL,
-    #   eg_cluster_lookup = NULL,
-    #   topic_colours = NULL 
-    # )
+    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+                    "for_app/cosmetic_sentences.rds",
+                    "for_app/automotive_sentences_embeddings.rds",
+                    "for_app/automotive_sentences.rds",
+                    "for_app/food_beverage_sentences_embeddings.rds",
+                    "for_app/food_beverage_sentences.rds")
+
+    for (file_path in file_paths) {
+
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+
+      data <- readRDS(temp_file)
+      assign(category, data)
+    }
     
     observeEvent(input$update_plot, {
       
@@ -65,14 +74,28 @@ searchServer <- function(id, r) {
         dplyr::filter(grepl(input$search_term, text_clean, ignore.case = TRUE))
         # dplyr::filter(grepl("face", text_clean, ignore.case = TRUE))
       
+      sentence_embeddings <- switch(r$input_dataset,
+                                "Beauty & Cosmetics" = cosmetic_sentences_embeddings,
+                                "Automotive" = automotive_sentences_embeddings,
+                                "Food & Beverages" = food_data_sentences_embeddings
+      )
+      
+      sentence_df <- switch(r$input_dataset,
+                            "Beauty & Cosmetics" = cosmetic_sentences,
+                            "Automotive" = automotive_sentence,
+                            "Food & Beverages" = food_data_sentences
+      )
+      
       semantic_similarity_output <- cosine_calculation_threshold_sentence(
         reference_statement = input$search_term,
         cosine_sim_threshold = input$semantic_sim_threshold,
         # reference_statement = "face",
         # cosine_sim_threshold = 0.0,
         embedding_model = "multi-qa-mpnet-base-cos-v1",
-        sentence_matrix = multi_qa_matrix_sentences,
-        df = example_sentences
+        # sentence_matrix = multi_qa_matrix_sentences,
+        # df = example_sentences
+        sentence_matrix = sentence_embeddings,
+        df = sentence_df
       ) %>% 
         process_sentences(example_sentences)
       

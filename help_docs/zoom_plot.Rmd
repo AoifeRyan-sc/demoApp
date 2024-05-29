@@ -369,3 +369,92 @@ p <- p %>% htmlwidgets::onRender(js_code)
 
 p
 ```
+
+# Some more cgpt output
+```{r}
+library(plotly)
+library(dplyr)
+
+# Sample data
+set.seed(123)
+n <- 1000
+data <- data.frame(
+  x = rnorm(n),
+  y = rnorm(n),
+  cluster = sample(letters[1:5], n, replace = TRUE)
+)
+
+# Create initial plot
+p <- plot_ly(data, x = ~x, y = ~y, type = 'scattergl', mode = 'markers', color = ~cluster) %>%
+  layout(title = "Cluster Plot with Dynamic Labels")
+
+# Function to add annotations based on zoom level
+add_cluster_labels <- function(plot, data, zoom_level) {
+  clusters <- data %>%
+    group_by(cluster) %>%
+    summarise(x = mean(x), y = mean(y))
+
+  if (zoom_level > 2) {
+    # Add more detailed labels for smaller clusters
+    plot <- plot %>%
+      add_annotations(
+        data = clusters,
+        x = ~x, y = ~y,
+        text = ~cluster,
+        showarrow = TRUE,
+        arrowhead = 2,
+        ax = 20,
+        ay = -30
+      )
+  } else {
+    # Add fewer, generic labels for large clusters
+    plot <- plot %>%
+      add_annotations(
+        x = 0, y = 0,
+        text = "Large Cluster Area",
+        showarrow = FALSE
+      )
+  }
+
+  return(plot)
+}
+
+# Initial plot with generic labels
+p <- add_cluster_labels(p, data, zoom_level = 1)
+
+# Adding event listener for zoom
+p <- p %>%
+  event_register("plotly_relayout") %>%
+  event_data("plotly_relayout") %>%
+  onRender("
+    function(el, x) {
+      el.on('plotly_relayout', function(e) {
+        var zoom_level = Math.abs(e['xaxis.range[1]'] - e['xaxis.range[0]']) / 2;
+        Shiny.onInputChange('zoom_level', zoom_level);
+      });
+    }
+  ")
+
+# Shiny server function to handle zoom level changes
+shinyServer(function(input, output, session) {
+  observe({
+    zoom_level <- input$zoom_level
+    if (!is.null(zoom_level)) {
+      output$plot <- renderPlotly({
+        add_cluster_labels(p, data, zoom_level)
+      })
+    }
+  })
+})
+
+# Running the Shiny app
+shinyApp(
+  ui = fluidPage(
+    plotlyOutput("plot")
+  ),
+  server = function(input, output, session) {
+    output$plot <- renderPlotly({ p })
+  }
+)
+
+```

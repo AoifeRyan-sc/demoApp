@@ -408,11 +408,14 @@ insert_line_breaks <- function(text, n = 10) {
 
 Now add recalculated V1 and V2 from colab and save
 ```{r}
-embeddings2d <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_reduced_hdb_embeddings.csv")
+embeddings2d <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_reduced_hdb_embeddings2d.csv")
 
 beauty_topics <- beauty_hdb %>%
+  dplyr::select(-c(V1, V2)) %>%
   mutate(text_with_breaks = sapply(text, insert_line_breaks),
-         kmeans_topic = kmeans_model$topics_) %>%
+         kmeans_topic = kmeans_model$topics_,
+         V1 = embeddings2d[,1],
+         V2 = embeddings2d[,2]) %>%
   left_join(kmeans_topic_lookup, by = join_by("kmeans_topic" == "Topic")) %>%
   left_join(hdb_topic_lookup, by = join_by("hdb_topic" == "Topic")) %>%
   mutate(hdb_topic_title = unlist(hdb_topic_title),
@@ -421,6 +424,14 @@ beauty_topics <- beauty_hdb %>%
 beauty_topics %>%
   write_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_kmeans_and_hdb_topics.csv")
 
+
+# cosmetic_adj <- cosmetic_data %>%
+#   dplyr::select(-c(V1, V2)) %>%
+#   dplyr::mutate(V1 = unlist(embeddings2d[,1]),
+#          V2 = unlist(embeddings2d[,2]))
+
+# cosmetic_adj %>%
+#   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds")
 ```
 
 Now I should maybe tokenise
@@ -450,6 +461,7 @@ cosmetic_sentence_embeddings %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings.rds")
 ```
 
+# fixing external data labels
 Fixing topic titles in sentence df (saved as list and so not present when reuploaded)
 ```{r}
 cosmetic_data <- readr::read_rds(here::here("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds"))
@@ -484,10 +496,11 @@ cosmetic_sentence_topics %>% readr::write_rds("~/Google Drive/My Drive/Share_Cli
 
 Examining food and automotive columns
 ```{r}
-automotive_data_adj <- automotive_data %>% 
+automotive_data <- automotive_data %>% 
   dplyr::mutate(text_with_breaks = sapply(text, insert_line_breaks)) %>%
   dplyr::rename(hdb_topic = hdbscan_topic,
-                hdb_topic_title = hdbscan_topic_title)
+                hdb_topic_title = hdbscan_topic_title,
+                text_clean = text_copy)
 
 automotive_data_adj %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_df.rds")
@@ -498,7 +511,8 @@ food_data  <-
 food_data %>% colnames()
 
 food_data_adj <- food_data %>% 
-  dplyr::mutate(text_with_breaks = sapply(text, insert_line_breaks))
+  dplyr::mutate(text_with_breaks = sapply(text, insert_line_breaks)) %>%
+  rename(text_clean = text_copy)
 
 food_data_adj %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_df.rds")
