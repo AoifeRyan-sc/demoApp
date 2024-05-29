@@ -334,7 +334,7 @@ hdb_topic_lookup <-  topic_summary %>%
 
 beauty_hdb %>%
   left_join(hdb_topic_lookup, by = join_by("hdb_topic" == "Topic")) %>% 
-  select(hdb_topic, openai_representation) )
+  select(hdb_topic, openai_representation) 
 
 
 beauty_hdb %>%
@@ -403,6 +403,12 @@ insert_line_breaks <- function(text, n = 10) {
   }), collapse = "<br>")
 }
 
+```
+
+
+Now add recalculated V1 and V2 from colab and save
+```{r}
+embeddings2d <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_reduced_hdb_embeddings.csv")
 
 beauty_topics <- beauty_hdb %>%
   mutate(text_with_breaks = sapply(text, insert_line_breaks),
@@ -473,4 +479,33 @@ cosmetic_data %>%
   distinct(hdb_topic, hdb_topic_title)
 
 cosmetic_sentence_topics %>% readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
+```
+
+
+Examining food and automotive columns
+```{r}
+automotive_data_adj <- automotive_data %>% 
+  dplyr::mutate(text_with_breaks = sapply(text, insert_line_breaks)) %>%
+  dplyr::rename(hdb_topic = hdbscan_topic,
+                hdb_topic_title = hdbscan_topic_title)
+
+automotive_data_adj %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_df.rds")
+
+food_data  <-
+  readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/old/food_beverage_df.rds")
+
+food_data %>% colnames()
+
+food_data_adj <- food_data %>% 
+  dplyr::mutate(text_with_breaks = sapply(text, insert_line_breaks))
+
+food_data_adj %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_df.rds")
+
+
+# food_data %>%
+#   mutate(kmeans_topic_title = dplyr::case_when(
+#     topic_title == "Food Recipes & Menus" ~ ""
+#   ))
 ```
