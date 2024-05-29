@@ -493,6 +493,31 @@ cosmetic_data %>%
 cosmetic_sentence_topics %>% readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
 ```
 
+Shortening topic titles
+```{r}
+cosmetic_data %>% 
+  distinct(kmeans_topic_title, kmeans_topic) %>%
+  arrange(kmeans_topic)
+
+cosmetic_data <- cosmetic_data %>%
+    dplyr::mutate(kmeans_topic_title = dplyr::case_when(
+      kmeans_topic == 0 ~ "Hair",
+      kmeans_topic == 1 ~ "Fragrances",
+      kmeans_topic == 2 ~ "Skincare",
+      kmeans_topic == 3 ~ "Skin Concerns",
+      kmeans_topic == 4 ~ "Sun Protection",
+      kmeans_topic == 5 ~ "Designers",
+      kmeans_topic == 6 ~ "Bridal",
+      kmeans_topic == 7 ~ "Vaseline",
+      kmeans_topic == 8 ~ "Body Shop",
+      kmeans_topic == 9 ~ "Becky X Maybelline\nColab",
+      TRUE ~ NA
+    ))
+
+cosmetic_data %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds")
+```
+
 
 Examining food and automotive columns
 ```{r}

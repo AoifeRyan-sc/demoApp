@@ -45,24 +45,27 @@ searchServer <- function(id, r) {
     # cosmetic_sentences_embeddings <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings.rds") %>%
       # as.matrix()
     
-    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-                    "for_app/cosmetic_sentences.rds",
-                    "for_app/automotive_sentences_embeddings.rds",
-                    "for_app/automotive_sentences.rds",
-                    "for_app/food_beverage_sentences_embeddings.rds",
-                    "for_app/food_beverage_sentences.rds")
-
-    for (file_path in file_paths) {
-
-      file <- googledrive::drive_get(file_path)
-      temp_file <- tempfile(fileext = ".rds")
-      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-
-      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-
-      data <- readRDS(temp_file)
-      assign(category, data)
-    }
+    # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
+    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+    #                 "for_app/cosmetic_sentences.rds",
+    #                 "for_app/automotive_sentences_embeddings.rds",
+    #                 "for_app/automotive_sentences.rds",
+    #                 "for_app/food_beverage_sentences_embeddings.rds",
+    #                 "for_app/food_beverage_sentences.rds")
+    # 
+    # for (file_path in file_paths) {
+    #   
+    #   file <- googledrive::drive_get(file_path)
+    #   temp_file <- tempfile(fileext = ".rds")
+    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+    #   
+    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+    #   
+    #   data <- readRDS(temp_file)
+    #   assign(category, data)
+    # }
+    # ----
+    
     
     observeEvent(input$update_plot, {
       

@@ -42,19 +42,22 @@ createUmap <- function(r){
   # colour functions ----
   topics <- unique(r$df()$kmeans_topic_title)
   colours <- viridis::viridis(n = length(topics), begin = 0, end = 0.92, option = "D", direction = 1)
-  names(colours) <- unique(topics)
+  colour_lighter <- adjust_colour_lighter(colours, og_val = 0.8)
+  names(colour_lighter) <- unique(topics)
+  colour_darker <- adjust_colour_darker(colours, og_val = 1)
+  names(colour_darker) <- unique(topics)
 
   # adjusted_colours_lighter_0.6 <- purrr::map_chr(colours, ~adjust_colour_lighter(.x, og_val = 0.6)) ## for points
-  adjusted_colours_lighter_0.05 <- purrr::map_chr(colours, ~adjust_colour_lighter(.x, og_val = 0.05))
-  adjusted_colours_darker_1 <- purrr::map_chr(colours, ~adjust_colour_darker(.x, og_val = 1)) ## for labels
+  # adjusted_colours_lighter_0.05 <- purrr::map_chr(colours, ~adjust_colour_lighter(.x, og_val = 0.05))
+  # adjusted_colours_darker_1 <- purrr::map_chr(colours, ~adjust_colour_darker(.x, og_val = 1)) ## for labels
   # ----
 
   # cluster labelling and colouring ----
   centroids <- r$df() %>%
     dplyr::group_by(kmeans_topic_title) %>%
     dplyr::summarise(
-      x = median(V1),
-      y = median(V2)
+      x = mean(V1),
+      y = mean(V2)
     )
 
   cluster_lookup <- r$df() %>%
@@ -68,8 +71,7 @@ createUmap <- function(r){
   # ----
 
   # plot ----
-  # sysfonts::font_add(family = "Cinzel-Regular", regular = "/Users/aoiferyan/Library/Fonts/Cinzel-Regular.ttf")
-  
+
   if(is.null(r$highlight_df)){
     
     p <- r$df() %>%
@@ -88,7 +90,8 @@ createUmap <- function(r){
                       y = ~V2,
                       width = 900, height = 700,
                       color = ~kmeans_topic_title,
-                      colors = ~adjust_colour_lighter(colours, og_val = 0.8),
+                      # colors = ~adjust_colour_lighter(colours, og_val = 0.8),
+                      colors = colour_lighter,
                       key = ~universal_message_id,
                       customdata = ~sender_screen_name,
                       type = "scattergl",
@@ -233,9 +236,7 @@ for (i in 1:nrow(cluster_lookup)) {
     showarrow = FALSE,
     font = list(size = 22,
                 family = "Cinzel",
-                # color = adjusted_colours_darker_1[as.numeric(cluster_lookup$topic_number[i])]
-                # color = adjusted_colours_darker_1[cluster_lookup$kmeans_topic_title[i]]
-                color = "#2F314D"
+                color = colour_darker[cluster_lookup$label[i]]
                 )
   )
 }
