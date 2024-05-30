@@ -27,21 +27,21 @@ dataUploadServer <- function(id, r){
     ns <- session$ns
     
     # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-  # file_paths <- c("for_app/cosmetic_df.rds",
-  #                 "for_app/automotive_df.rds",
-  # "for_app/food_beverage_df.rds")
-  # 
-  # for (file_path in file_paths) {
-  # 
-  #   file <- googledrive::drive_get(file_path)
-  #   temp_file <- tempfile(fileext = ".rds")
-  #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-  # 
-  #   category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
-  # 
-  #   data <- readRDS(temp_file)
-  #   assign(paste0(category, "_data"), data)
-  # }
+  file_paths <- c("for_app/cosmetic_df.rds",
+                  "for_app/automotive_df.rds",
+  "for_app/food_beverage_df.rds")
+
+  for (file_path in file_paths) {
+
+    file <- googledrive::drive_get(file_path)
+    temp_file <- tempfile(fileext = ".rds")
+    googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+    category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
+
+    data <- readRDS(temp_file)
+    assign(paste0(category, "_data"), data)
+  }
 
     # ----
 

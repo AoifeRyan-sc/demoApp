@@ -66,14 +66,12 @@ createUmap <- function(r){
     
     p <- r$df() %>%
       dplyr::mutate(
-                    # assigned_colour = colours[kmeans_topic_title],
                     hover_text = 
                       paste0(
                         "<span style='display: inline-block; background-color: grey; padding: 10px; border-radius: 10px;width: 200px; text-align: center;'>",
                         "<i>", "\"", text_with_breaks, "\"", "</i> - @", sender_screen_name, "<br><br>",
                         "<b><span style='color:", 
                         colour_darker[kmeans_topic_title],
-                        # "#000000", 
                         ";'>", kmeans_topic_title, "</span></b>",
                         "</span>")
       ) %>%
@@ -81,7 +79,6 @@ createUmap <- function(r){
                       y = ~V2,
                       width = 900, height = 700,
                       color = ~kmeans_topic_title,
-                      # colors = ~adjust_colour_lighter(colours, og_val = 0.8),
                       colors = colour_lighter,
                       key = ~universal_message_id,
                       customdata = ~sender_screen_name,
@@ -103,18 +100,14 @@ createUmap <- function(r){
     grey_points <- r$grey_df()
     
     p <- plotly::plot_ly(width = 900, height = 700,
-                         # colors = colours,
-                         # colors = adjust_colour_lighter(colours, og_val = 0.8),
                          colors = colour_lighter,
                          source = "umap_plot"
     )
     
     if(nrow(r$highlight_df()) != 0){
-      print(head(r$highlight_df()$text_with_breaks))
-      
+
       highlight_points <- r$highlight_df() %>%
         dplyr::mutate(
-          # assigned_colour = colours[kmeans_topic_title],
           hover_text = 
             paste0(
               "<span style='display: inline-block; background-color: grey; padding: 10px; border-radius: 10px;width: 200px; text-align: center;'>",

@@ -50,24 +50,24 @@ searchServer <- function(id, r) {
     ns <- session$ns
     
     # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-    #                 "for_app/cosmetic_sentences.rds",
-    #                 "for_app/automotive_sentences_embeddings.rds",
-    #                 "for_app/automotive_sentences.rds",
-    #                 "for_app/food_beverage_sentences_embeddings.rds",
-    #                 "for_app/food_beverage_sentences.rds")
-    # 
-    # for (file_path in file_paths) {
-    # 
-    #   file <- googledrive::drive_get(file_path)
-    #   temp_file <- tempfile(fileext = ".rds")
-    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-    # 
-    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-    # 
-    #   data <- readRDS(temp_file)
-    #   assign(category, data)
-    # }
+    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+                    "for_app/cosmetic_sentences.rds",
+                    "for_app/automotive_sentences_embeddings.rds",
+                    "for_app/automotive_sentences.rds",
+                    "for_app/food_beverage_sentences_embeddings.rds",
+                    "for_app/food_beverage_sentences.rds")
+
+    for (file_path in file_paths) {
+
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+
+      data <- readRDS(temp_file)
+      assign(category, data)
+    }
     # ----
     
     
@@ -76,10 +76,6 @@ searchServer <- function(id, r) {
       shiny::validate(
         shiny::need(grepl("^[a-zA-Z0-9 ]*$", input$search_term), "Invalid characters detected! Please use only alphanumeric characters and spaces.")
         )
-      
-      # keyword_search <- r$df() %>%
-      #   dplyr::filter(grepl(input$search_term, text_clean, ignore.case = TRUE))
-        # dplyr::filter(grepl("face", text_clean, ignore.case = TRUE))
       
       sentence_embeddings <- switch(r$input_dataset,
                                 "Beauty & Cosmetics" = cosmetic_sentences_embeddings,
@@ -112,12 +108,9 @@ searchServer <- function(id, r) {
          semantic_sim = semantic_similarity_output, 
          search_term = input$search_term
          # search_term = "face"
-         )
-       
-       print(nrow(semantic_similarity_output))
-       print(nrow(keyword_search_output))
+       )
+
      
-      # print(head(semantic_similarity_output %>% dplyr::select(text_with_breaks)))
       r$highlight_df <- shiny::reactive({
         
         if(!is.null(semantic_similarity_output)){
