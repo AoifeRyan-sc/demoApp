@@ -34,11 +34,15 @@ searchUi <- function(id) {
   shiny::fluidRow(
     shiny::column(
       width = 6,
-      shiny::actionButton(NS(id, "update_plot"), "Update Plot", class = "btn-success"),
+      shiny::actionButton(NS(id, "update_plot"), "Update Plot", 
+                          # class = "btn-success"
+                          ),
     ),
     shiny::column(
       width = 6,
-      shiny::actionButton(NS(id, "reset_plot"), "Reset Plot", class = "btn-warning") 
+      shiny::actionButton(NS(id, "reset_plot"), "Reset Plot", 
+                          # class = "btn-warning"
+                          ) 
     )
   )
   )
@@ -50,28 +54,29 @@ searchServer <- function(id, r) {
     ns <- session$ns
     
     # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-                    "for_app/cosmetic_sentences.rds",
-                    "for_app/automotive_sentences_embeddings.rds",
-                    "for_app/automotive_sentences.rds",
-                    "for_app/food_beverage_sentences_embeddings.rds",
-                    "for_app/food_beverage_sentences.rds")
-
-    for (file_path in file_paths) {
-
-      file <- googledrive::drive_get(file_path)
-      temp_file <- tempfile(fileext = ".rds")
-      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-
-      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-
-      data <- readRDS(temp_file)
-      assign(category, data)
-    }
+    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+    #                 "for_app/cosmetic_sentences.rds",
+    #                 "for_app/automotive_sentences_embeddings.rds",
+    #                 "for_app/automotive_sentences.rds",
+    #                 "for_app/food_beverage_sentences_embeddings.rds",
+    #                 "for_app/food_beverage_sentences.rds")
+    # 
+    # for (file_path in file_paths) {
+    # 
+    #   file <- googledrive::drive_get(file_path)
+    #   temp_file <- tempfile(fileext = ".rds")
+    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+    # 
+    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+    # 
+    #   data <- readRDS(temp_file)
+    #   assign(category, data)
+    # }
     # ----
     
-    
+    r$calculating_plot <- shiny::reactiveVal(FALSE)
     observeEvent(input$update_plot, {
+      r$calculating_plot <- TRUE
       
       shiny::validate(
         shiny::need(grepl("^[a-zA-Z0-9 ]*$", input$search_term), "Invalid characters detected! Please use only alphanumeric characters and spaces.")
@@ -133,6 +138,7 @@ searchServer <- function(id, r) {
     })
     
     observeEvent(input$reset_plot, {
+      r$calculating_plot <- FALSE
       r$grey_df <- NULL
       r$highlight_df <- NULL
     })

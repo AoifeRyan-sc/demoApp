@@ -7,7 +7,7 @@ umapUi <- function(id){
   ns <- shiny::NS(id)
     htmltools::div(
       style = "position: relative",
-      shinycssloaders::withSpinner( 
+      shinycssloaders::withSpinner(
         shiny::uiOutput(ns("display_plot"))
       ),
       htmltools::div(
@@ -31,6 +31,9 @@ umapServer <- function(id, r){
     
     output$display_plot <- shiny::renderUI({
       if (input$plot_selection == FALSE){
+        print(r$calculating_plot)
+        # shiny::req(r$calculating_plot == TRUE, r$input_dataset)
+        # print("req satisfied")
         plotly::plotlyOutput(ns("umap_plot"))
       } else {
         shiny::imageOutput(ns("raster_plot"))
