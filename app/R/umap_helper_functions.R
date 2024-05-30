@@ -110,7 +110,7 @@ createUmap <- function(r){
     )
     
     if(nrow(r$highlight_df()) != 0){
-      print("not 0")
+      print(head(r$highlight_df()$text_with_breaks))
       
       highlight_points <- r$highlight_df() %>%
         dplyr::mutate(
@@ -123,6 +123,8 @@ createUmap <- function(r){
               ";'>", kmeans_topic_title, "</span></b>",
               "</span>"))
       
+      print(head(highlight_points %>% dplyr::select(hover_text)))
+      
       p <-  p %>%
         plotly::add_trace(data = highlight_points,
                           x = ~V1, y = ~V2,
@@ -133,7 +135,8 @@ createUmap <- function(r){
                           showlegend = TRUE,
                           marker = list(opacity = 0.6, size = 10),
                           hoverinfo ="text",
-                          text = ~hover_text,
+                          # text = ~hover_text,
+                          text = ~text_with_breaks,
                           hoverinfo = "text",
                           hoverlabel = list(
                             bgcolor = 'rgba(255,255,255,0.75)',

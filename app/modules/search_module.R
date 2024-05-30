@@ -50,24 +50,24 @@ searchServer <- function(id, r) {
     ns <- session$ns
     
     # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-                    "for_app/cosmetic_sentences.rds",
-                    "for_app/automotive_sentences_embeddings.rds",
-                    "for_app/automotive_sentences.rds",
-                    "for_app/food_beverage_sentences_embeddings.rds",
-                    "for_app/food_beverage_sentences.rds")
-
-    for (file_path in file_paths) {
-
-      file <- googledrive::drive_get(file_path)
-      temp_file <- tempfile(fileext = ".rds")
-      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-
-      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-
-      data <- readRDS(temp_file)
-      assign(category, data)
-    }
+    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+    #                 "for_app/cosmetic_sentences.rds",
+    #                 "for_app/automotive_sentences_embeddings.rds",
+    #                 "for_app/automotive_sentences.rds",
+    #                 "for_app/food_beverage_sentences_embeddings.rds",
+    #                 "for_app/food_beverage_sentences.rds")
+    # 
+    # for (file_path in file_paths) {
+    # 
+    #   file <- googledrive::drive_get(file_path)
+    #   temp_file <- tempfile(fileext = ".rds")
+    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+    # 
+    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+    # 
+    #   data <- readRDS(temp_file)
+    #   assign(category, data)
+    # }
     # ----
     
     
@@ -77,8 +77,8 @@ searchServer <- function(id, r) {
         shiny::need(grepl("^[a-zA-Z0-9 ]*$", input$search_term), "Invalid characters detected! Please use only alphanumeric characters and spaces.")
         )
       
-      keyword_search <- r$df() %>%
-        dplyr::filter(grepl(input$search_term, text_clean, ignore.case = TRUE))
+      # keyword_search <- r$df() %>%
+      #   dplyr::filter(grepl(input$search_term, text_clean, ignore.case = TRUE))
         # dplyr::filter(grepl("face", text_clean, ignore.case = TRUE))
       
       sentence_embeddings <- switch(r$input_dataset,
@@ -92,27 +92,42 @@ searchServer <- function(id, r) {
                             "Automotive" = automotive_sentence,
                             "Food & Beverages" = food_data_sentences
       )
-      
       semantic_similarity_output <- cosine_calculation_threshold_sentence(
         reference_statement = input$search_term,
         cosine_sim_threshold = input$semantic_sim_threshold,
         # reference_statement = "face",
-        # cosine_sim_threshold = 0.0,
+        # cosine_sim_threshold = 0.5,
         embedding_model = "multi-qa-mpnet-base-cos-v1",
         sentence_matrix = sentence_embeddings,
         df = sentence_df
-      ) %>% 
+        # sentence_matrix = as.matrix(cosmetic_sentences_embeddings),
+        # df = cosmetic_sentences
+        ) %>% 
+        # process_sentences(cosmetic_sentences)
         process_sentences(sentence_df)
-      
+        
+       keyword_search_output <- keyword_search(
+         df = r$df(),
+         # df = cosmetic_data,
+         semantic_sim = semantic_similarity_output, 
+         search_term = input$search_term
+         # search_term = "face"
+         )
+       
+       print(nrow(semantic_similarity_output))
+       print(nrow(keyword_search_output))
+     
+      # print(head(semantic_similarity_output %>% dplyr::select(text_with_breaks)))
       r$highlight_df <- shiny::reactive({
         
         if(!is.null(semantic_similarity_output)){
+          
           semantic_similarity_output %>%
-            dplyr::filter(highlighted == TRUE) %>%
-            dplyr::bind_rows(keyword_search) %>%
-            dplyr::distinct(universal_message_id, .keep_all = TRUE) 
+            # dplyr::filter(highlighted == TRUE) %>%
+            dplyr::bind_rows(keyword_search_output) 
+            # dplyr::distinct(universal_message_id, .keep_all = TRUE) 
         } else{
-          keyword_search
+          keyword_search_output
         }
         
         })

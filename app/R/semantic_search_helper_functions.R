@@ -23,14 +23,31 @@ insert_line_breaks <- function(text, n = 10) {
   
 }
 
-process_sentences <- function(doc_id, example_sentences) {
+insert_line_breaks_test <- function(text, n = 10) {
+  words <- unlist(strsplit(text, " "))
+  num_words <- length(words)
+  seq_indices <- seq(1, num_words, by = n)
+  
+  # Pre-allocate result vector
+  result <- character(length(seq_indices))
+  
+  # Use vapply for better performance
+  result <- vapply(seq_indices, function(i) {
+    paste(words[i:min(i + n - 1, num_words)], collapse = " ")
+  }, FUN.VALUE = character(1))
+  
+  paste(result, collapse = "<br>")
+}
+
+process_sentences_old <- function(doc_id, example_sentences) {
   if (nrow(doc_id) == 0){
     return(NULL)
   } else {
     doc_id %>%
+      dplyr::select(-text_with_breaks) %>%
       dplyr::group_by(universal_message_id) %>% # Change to appropriate document column
       dplyr::mutate(
-        sentences = sentences,
+        # sentences = sentences,
         text_copy = dplyr::first(text_clean) # Change to appropriate text column
       ) %>%
       dplyr::ungroup() %>%
@@ -43,79 +60,31 @@ process_sentences <- function(doc_id, example_sentences) {
       dplyr::mutate(test_text = dplyr::case_when(
         is.na(cosine_sim) ~ text_copy,
         TRUE ~ test_text
-      )) %>% dplyr::mutate(text_with_breaks = sapply(test_text, insert_line_breaks)) 
+      )) %>% 
+      dplyr::mutate(text_with_breaks = sapply(test_text, insert_line_breaks))
   }
 }
 
-process_sentences_quant <- function(doc_id, example_sentences) {
 
+process_sentences <- function(doc_id, example_sentences) {
   if (nrow(doc_id) == 0){
     return(NULL)
   } else {
-    df <- doc_id %>%
-      # dplyr::group_by(rowid) %>% # Change to appropriate document column
-      dplyr::group_by(universal_message_id) %>%
-      dplyr::mutate(
-        sentences = list(sentence),
-        text_copy = dplyr::first(text_copy) # Change to appropriate text column
-      ) %>%
+    doc_id %>%
+      dplyr::select(-text_with_breaks) %>%
+      dplyr::group_by(universal_message_id) %>% # Change to appropriate document column
+      dplyr::mutate(text_copy = dplyr::first(text_clean)) %>%
       dplyr::ungroup() %>%
-      dplyr::mutate(test_text = purrr::map2_chr(text_copy, sentences, highlight_sentences)) %>%
-      dplyr::distinct(universal_message_id, .keep_all = TRUE) %>% # Change to appropriate document column
-      dplyr::right_join(example_sentences) %>%
-      dplyr::mutate(highlighted = dplyr::case_when(is.na(dot_prod) ~ FALSE,
-                                                   T ~ TRUE)) %>% # Change to appropriate document column
-      dplyr::distinct(universal_message_id, .keep_all = TRUE) %>%
-      dplyr::mutate(test_text = dplyr::case_when(
-        is.na(dot_prod) ~ text_copy,
-        TRUE ~ test_text
-      )) %>% dplyr::mutate(text_with_breaks = sapply(test_text, insert_line_breaks)) %>% 
-      dplyr::select(text_with_breaks, highlighted, V1, V2, universal_message_id, sender_screen_name, topic, topic_title)
-    
-    return(df)
+      # dplyr::mutate(test_text = purrr::map2_chr(text_copy, sentences, highlight_sentences)) %>%
+      dplyr::mutate(test_text = purrr::map2_chr(text, sentences, highlight_sentences)) %>%
+      dplyr::distinct(universal_message_id, .keep_all = TRUE) %>% 
+      # dplyr::mutate(test_text = dplyr::case_when(
+      #   is.na(cosine_sim) ~ text_copy,
+      #   TRUE ~ test_text
+      # )) %>% 
+      dplyr::mutate(text_with_breaks = lapply(test_text, insert_line_breaks))
   }
-  
 }
-
-# generate_topic_colours <- function(example_sentences_2) {
-#   k <- n_distinct(example_sentences_2$topic)
-#   
-#   eg_colours <- viridis::viridis(k)
-#   
-#   adjusted_colours_lighter_0.5 <- map_chr(eg_colours, ~adjust_colour_lighter(.x, og_val = 0.5))
-#   
-#   setNames(adjusted_colours_lighter_0.5, unique(example_sentences_2$topic))
-# }
-
-# Function to prepare example data
-prepare_example_data <- function(example_sentences_2, topic_colours) {
-  example_sentences_2 %>%
-    dplyr::mutate(colour_mapped = if_else(new_colour == "#cccccc", "#cccccc", topic_colours[new_colour])) %>%
-    dplyr::mutate(text_with_breaks = sapply(test_text, insert_line_breaks))
-}
-
-# Function to filter grey points
-filter_grey_points <- function(example) {
-  example %>% filter(new_colour == "#cccccc") %>% dplyr::mutate(opacity = 0.2)
-}
-
-# Function to filter highlight points
-filter_highlight_points <- function(example) {
-  example %>% filter(new_colour != "#cccccc") %>% dplyr::mutate(opacity = 1)
-}
-
-# Function to generate cluster lookup
-generate_cluster_lookup <- function(example) {
-  example %>%
-    group_by(topic) %>%
-    summarise(
-      topic_number = cur_group_id(),
-      label = first(topic),
-      centroid_x = mean(V1),
-      centroid_y = mean(V2)
-    )
-}
-
 
 # Embed Query ------------------------------------------------------------
 
@@ -182,25 +151,11 @@ cosine_calculation_threshold_sentence <- function(reference_statement,
   
 }
 
-# Dot product calculation -------------------------------------------
 
-quant_dot_product_threshold_sentence <- function(reference_statement,
-                                                 dot_prod_threshold = 5,
-                                                 embedding_model,
-                                                 sentence_matrix,
-                                                 df) {
-  ref_sentence <- reference_statement
-  
-  reference_vector <- embed_query(query = ref_sentence, embedding_model = embedding_model)
-  
-  sentence_dot_products <- sentence_matrix %*% reference_vector
-  
-  current_sentence_candidates <- df %>%
-    dplyr::mutate(dot_prod = as.numeric(sentence_dot_products)) %>%
-    dplyr::relocate(dot_prod) %>%
-    dplyr::filter(dot_prod > dot_prod_threshold) %>%
-    dplyr::arrange(desc(dot_prod))
-  
-  return(current_sentence_candidates)
-  
+keyword_search <- function(df, semantic_sim, search_term){
+  df %>%
+    dplyr::anti_join(semantic_sim, by = "universal_message_id") %>%
+    dplyr::filter(grepl(search_term, text_clean, ignore.case = TRUE)) %>%
+    dplyr::mutate(text_with_breaks = purrr::map2_chr(text, search_term, highlight_sentences),
+                  text_with_breaks = lapply(text_with_breaks, insert_line_breaks))
 }

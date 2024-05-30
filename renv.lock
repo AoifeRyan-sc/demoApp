@@ -231,16 +231,6 @@
       ],
       "Hash": "1216ac65ac55ec0058a6f75d7ca0fd52"
     },
-    "clipr": {
-      "Package": "clipr",
-      "Version": "0.8.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "utils"
-      ],
-      "Hash": "3f038e5ac7f41d4ac41ce658c85e3042"
-    },
     "colorspace": {
       "Package": "colorspace",
       "Version": "2.1-0",
@@ -555,20 +545,6 @@
         "xfun"
       ],
       "Hash": "06230136b2d2b9ba5805e1963fa6e890"
-    },
-    "hms": {
-      "Package": "hms",
-      "Version": "1.1.3",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "lifecycle",
-        "methods",
-        "pkgconfig",
-        "rlang",
-        "vctrs"
-      ],
-      "Hash": "b59377caa7ed00fa41808342002138f9"
     },
     "htmltools": {
       "Package": "htmltools",
@@ -920,30 +896,6 @@
       ],
       "Hash": "a1ac5c03ad5ad12b9d1597e00e23c3dd"
     },
-    "prettyunits": {
-      "Package": "prettyunits",
-      "Version": "1.2.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R"
-      ],
-      "Hash": "6b01fc98b1e86c4f705ce9dcfd2f57c7"
-    },
-    "progress": {
-      "Package": "progress",
-      "Version": "1.2.3",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "R6",
-        "crayon",
-        "hms",
-        "prettyunits"
-      ],
-      "Hash": "f4625e061cb2865f111b47ff163a5ca6"
-    },
     "promises": {
       "Package": "promises",
       "Version": "1.3.0",
@@ -984,29 +936,6 @@
         "R"
       ],
       "Hash": "5e3c5dc0b071b21fa128676560dbe94d"
-    },
-    "readr": {
-      "Package": "readr",
-      "Version": "2.1.5",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "R6",
-        "cli",
-        "clipr",
-        "cpp11",
-        "crayon",
-        "hms",
-        "lifecycle",
-        "methods",
-        "rlang",
-        "tibble",
-        "tzdb",
-        "utils",
-        "vroom"
-      ],
-      "Hash": "9de96463d2117f6ac49980577939dfb3"
     },
     "renv": {
       "Package": "renv",
@@ -1238,13 +1167,6 @@
       "Repository": "CRAN",
       "Hash": "3a1be13d68d47a8cd0bfd74739ca1555"
     },
-    "sysfonts": {
-      "Package": "sysfonts",
-      "Version": "0.8.9",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Hash": "7dfca1e9c5c278300b5ca6a1772072f7"
-    },
     "tibble": {
       "Package": "tibble",
       "Version": "3.2.1",
@@ -1313,17 +1235,6 @@
       ],
       "Hash": "d44e2fcd2e4e076f0aac540208559d1d"
     },
-    "tzdb": {
-      "Package": "tzdb",
-      "Version": "0.4.0",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "cpp11"
-      ],
-      "Hash": "f561504ec2897f4d46f0c7657e488ae1"
-    },
     "utf8": {
       "Package": "utf8",
       "Version": "1.2.4",
@@ -1380,32 +1291,6 @@
         "R"
       ],
       "Hash": "c826c7c4241b6fc89ff55aaea3fa7491"
-    },
-    "vroom": {
-      "Package": "vroom",
-      "Version": "1.6.5",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "bit64",
-        "cli",
-        "cpp11",
-        "crayon",
-        "glue",
-        "hms",
-        "lifecycle",
-        "methods",
-        "progress",
-        "rlang",
-        "stats",
-        "tibble",
-        "tidyselect",
-        "tzdb",
-        "vctrs",
-        "withr"
-      ],
-      "Hash": "390f9315bc0025be03012054103d227c"
     },
     "withr": {
       "Package": "withr",
