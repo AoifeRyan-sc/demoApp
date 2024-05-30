@@ -1,6 +1,3 @@
-# sysfonts::font_add(family = "Cinzel-Regular", regular = "/Users/aoiferyan/Library/Fonts/Cinzel-Regular.ttf")
-# sysfonts::font_add(family = "Cinzel-SemiBold", regular = "/Users/aoiferyan/Library/Fonts/Cinzel-SemiBold.ttf")
-
 ui <- bslib::page_fillable(
   tags$style(HTML("g.hovertext > path {opacity: .8;}")),
   

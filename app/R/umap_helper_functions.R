@@ -42,23 +42,13 @@ createUmap <- function(r){
   # colour functions ----
   topics <- unique(r$df()$kmeans_topic_title)
   colours <- viridis::viridis(n = length(topics), begin = 0, end = 0.92, option = "D", direction = 1)
-  colour_lighter <- adjust_colour_lighter(colours, og_val = 0.8)
+  colour_lighter <- adjust_colour_lighter(colours, og_val = 0.6)
   names(colour_lighter) <- unique(topics)
   colour_darker <- adjust_colour_darker(colours, og_val = 1)
   names(colour_darker) <- unique(topics)
-
-  # adjusted_colours_lighter_0.6 <- purrr::map_chr(colours, ~adjust_colour_lighter(.x, og_val = 0.6)) ## for points
-  # adjusted_colours_lighter_0.05 <- purrr::map_chr(colours, ~adjust_colour_lighter(.x, og_val = 0.05))
-  # adjusted_colours_darker_1 <- purrr::map_chr(colours, ~adjust_colour_darker(.x, og_val = 1)) ## for labels
   # ----
 
   # cluster labelling and colouring ----
-  centroids <- r$df() %>%
-    dplyr::group_by(kmeans_topic_title) %>%
-    dplyr::summarise(
-      x = mean(V1),
-      y = mean(V2)
-    )
 
   cluster_lookup <- r$df() %>%
     dplyr::group_by(kmeans_topic_title) %>%
@@ -76,14 +66,15 @@ createUmap <- function(r){
     
     p <- r$df() %>%
       dplyr::mutate(
-                    assigned_colour = colours[kmeans_topic_title],
+                    # assigned_colour = colours[kmeans_topic_title],
                     hover_text = 
                       paste0(
                         "<span style='display: inline-block; background-color: grey; padding: 10px; border-radius: 10px;width: 200px; text-align: center;'>",
                         "<i>", "\"", text_with_breaks, "\"", "</i> - @", sender_screen_name, "<br><br>",
                         "<b><span style='color:", 
-                        # adjust_colour_darker(assigned_colour, og_val = 1), 
-                        "#000000", ";'>", kmeans_topic_title, "</span></b>",
+                        colour_darker[kmeans_topic_title],
+                        # "#000000", 
+                        ";'>", kmeans_topic_title, "</span></b>",
                         "</span>")
       ) %>%
       plotly::plot_ly(x = ~V1,
@@ -105,7 +96,7 @@ createUmap <- function(r){
                         )
                       ),
                       showlegend = TRUE,
-                      marker = list(opacity = 0.7, size = 4),
+                      marker = list(opacity = 0.6, size = 4),
                       source = "umap_plot"
       )
   } else {
@@ -113,7 +104,8 @@ createUmap <- function(r){
     
     p <- plotly::plot_ly(width = 900, height = 700,
                          # colors = colours,
-                         colors = adjust_colour_lighter(colours, og_val = 0.8),
+                         # colors = adjust_colour_lighter(colours, og_val = 0.8),
+                         colors = colour_lighter,
                          source = "umap_plot"
     )
     
@@ -122,13 +114,12 @@ createUmap <- function(r){
       
       highlight_points <- r$highlight_df() %>%
         dplyr::mutate(
-          assigned_colour = colours[kmeans_topic_title],
+          # assigned_colour = colours[kmeans_topic_title],
           hover_text = 
             paste0(
               "<span style='display: inline-block; background-color: grey; padding: 10px; border-radius: 10px;width: 200px; text-align: center;'>",
               "<i>", "\"", text_with_breaks, "\"", "</i> - @", sender_screen_name, "<br><br>",
-              "<b><span style='color:", "#000000",
-              # adjust_colour_darker(assigned_colour, og_val = 1), 
+              "<b><span style='color:", colour_darker[kmeans_topic_title],
               ";'>", kmeans_topic_title, "</span></b>",
               "</span>"))
       
@@ -140,7 +131,7 @@ createUmap <- function(r){
                           key = ~universal_message_id,
                           color = ~kmeans_topic_title,
                           showlegend = TRUE,
-                          marker = list(opacity = 0.7, size = 10),
+                          marker = list(opacity = 0.6, size = 10),
                           hoverinfo ="text",
                           text = ~hover_text,
                           hoverinfo = "text",
@@ -161,7 +152,8 @@ createUmap <- function(r){
                         type = "scattergl",
                         mode = "markers",
                         key = ~universal_message_id,
-                        showlegend = FALSE,
+                        # showlegend = FALSE,
+                        showlegend = TRUE,
                         marker = list(opacity = 0.7, size = 4, color = "#cccccc"),
                         hoverinfo = "skip")
     

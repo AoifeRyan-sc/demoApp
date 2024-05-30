@@ -31,7 +31,16 @@ searchUi <- function(id) {
         )
       ),
   htmltools::tags$div(style = "margin-top: 10px; margin-bottom: 10px;"),   # break before action button
-  shiny::actionButton(NS(id, "update_plot"), "Update Plot")
+  shiny::fluidRow(
+    shiny::column(
+      width = 6,
+      shiny::actionButton(NS(id, "update_plot"), "Update Plot", class = "btn-success"),
+    ),
+    shiny::column(
+      width = 6,
+      shiny::actionButton(NS(id, "reset_plot"), "Reset Plot", class = "btn-warning") 
+    )
+  )
   )
 }
 
@@ -40,30 +49,25 @@ searchServer <- function(id, r) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # cosmetic_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
-    # 
-    # cosmetic_sentences_embeddings <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings.rds") %>%
-      # as.matrix()
-    
     # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-    #                 "for_app/cosmetic_sentences.rds",
-    #                 "for_app/automotive_sentences_embeddings.rds",
-    #                 "for_app/automotive_sentences.rds",
-    #                 "for_app/food_beverage_sentences_embeddings.rds",
-    #                 "for_app/food_beverage_sentences.rds")
-    # 
-    # for (file_path in file_paths) {
-    #   
-    #   file <- googledrive::drive_get(file_path)
-    #   temp_file <- tempfile(fileext = ".rds")
-    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-    #   
-    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-    #   
-    #   data <- readRDS(temp_file)
-    #   assign(category, data)
-    # }
+    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+                    "for_app/cosmetic_sentences.rds",
+                    "for_app/automotive_sentences_embeddings.rds",
+                    "for_app/automotive_sentences.rds",
+                    "for_app/food_beverage_sentences_embeddings.rds",
+                    "for_app/food_beverage_sentences.rds")
+
+    for (file_path in file_paths) {
+
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+
+      data <- readRDS(temp_file)
+      assign(category, data)
+    }
     # ----
     
     
@@ -81,7 +85,7 @@ searchServer <- function(id, r) {
                                 "Beauty & Cosmetics" = cosmetic_sentences_embeddings,
                                 "Automotive" = automotive_sentences_embeddings,
                                 "Food & Beverages" = food_data_sentences_embeddings
-      )
+      ) %>% as.matrix()
       
       sentence_df <- switch(r$input_dataset,
                             "Beauty & Cosmetics" = cosmetic_sentences,
@@ -95,12 +99,10 @@ searchServer <- function(id, r) {
         # reference_statement = "face",
         # cosine_sim_threshold = 0.0,
         embedding_model = "multi-qa-mpnet-base-cos-v1",
-        # sentence_matrix = multi_qa_matrix_sentences,
-        # df = example_sentences
         sentence_matrix = sentence_embeddings,
         df = sentence_df
       ) %>% 
-        process_sentences(example_sentences)
+        process_sentences(sentence_df)
       
       r$highlight_df <- shiny::reactive({
         
@@ -115,16 +117,16 @@ searchServer <- function(id, r) {
         
         })
       
-      print(nrow(r$highlight_df()))
-      print(class(semantic_similarity_output))
       r$grey_df <- shiny::reactive({
         r$df() %>%
           dplyr::anti_join(r$highlight_df(), by = "universal_message_id")
       })
-      
-      print(nrow(r$grey_df()))
-      
 
+    })
+    
+    observeEvent(input$reset_plot, {
+      r$grey_df <- NULL
+      r$highlight_df <- NULL
     })
     
     

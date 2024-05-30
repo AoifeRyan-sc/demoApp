@@ -408,7 +408,12 @@ insert_line_breaks <- function(text, n = 10) {
 
 Now add recalculated V1 and V2 from colab and save
 ```{r}
-embeddings2d <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_reduced_hdb_embeddings2d.csv")
+# embeddings2d <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_reduced_hdb_embeddings2d_rev2.csv")
+
+# I really don't like these reduced embeddings
+reducer <- BertopicR::bt_make_reducer_umap(n_components = 2L, metric = "cosine")
+embeddings2d <- bt_do_reducing(reducer, beauty_hdb_embeddings)
+
 
 beauty_topics <- beauty_hdb %>%
   dplyr::select(-c(V1, V2)) %>%
@@ -425,13 +430,13 @@ beauty_topics %>%
   write_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_kmeans_and_hdb_topics.csv")
 
 
-# cosmetic_adj <- cosmetic_data %>%
-#   dplyr::select(-c(V1, V2)) %>%
-#   dplyr::mutate(V1 = unlist(embeddings2d[,1]),
-#          V2 = unlist(embeddings2d[,2]))
+cosmetic_adj <- cosmetic_data %>%
+  dplyr::select(-c(V1, V2)) %>%
+  dplyr::mutate(V1 = unlist(embeddings2d[,1]),
+         V2 = unlist(embeddings2d[,2]))
 
-# cosmetic_adj %>%
-#   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds")
+cosmetic_adj %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds")
 ```
 
 Now I should maybe tokenise
@@ -507,7 +512,7 @@ cosmetic_data <- cosmetic_data %>%
       kmeans_topic == 3 ~ "Skin Concerns",
       kmeans_topic == 4 ~ "Sun Protection",
       kmeans_topic == 5 ~ "Designers",
-      kmeans_topic == 6 ~ "Bridal",
+      kmeans_topic == 6 ~ "Makeup",
       kmeans_topic == 7 ~ "Vaseline",
       kmeans_topic == 8 ~ "Body Shop",
       kmeans_topic == 9 ~ "Becky X Maybelline\nColab",
@@ -516,6 +521,42 @@ cosmetic_data <- cosmetic_data %>%
 
 cosmetic_data %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds")
+```
+
+
+Ok now that I've shortened the cosmetic data and updated the V1 and V2 coordinates and kmeans topic titles, I need to update the sentence topic title
+```{r}
+cosmetic_data <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds")
+
+cosmetic_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
+
+cosmetic_topic_info <- cosmetic_data %>%
+  dplyr::select(kmeans_topic_title, kmeans_topic, V1, V2, universal_message_id)
+
+cosmetic_sentence_topics <- cosmetic_sentences %>%
+  dplyr::select(-c(kmeans_topic_title, V1, V2)) %>%
+  dplyr::left_join(cosmetic_topic_info, by = c("universal_message_id", "kmeans_topic"))
+
+# quick check
+cosmetic_sentence_topics %>%
+  dplyr::distinct(kmeans_topic, kmeans_topic_title) %>% dplyr::arrange(kmeans_topic)
+
+cosmetic_sentence_topics %>%
+  dplyr::distinct(kmeans_topic, kmeans_topic_title) %>% dplyr::arrange(kmeans_topic)
+
+cosmetic_sentence_topics %>%
+  dplyr::distinct(universal_message_id, .keep_all = TRUE) %>%
+  dplyr::group_by(kmeans_topic, kmeans_topic_title) %>%
+  dplyr::summarise(n = dplyr::n())
+
+cosmetic_topic_info %>%
+  dplyr::group_by(kmeans_topic, kmeans_topic_title) %>%
+  dplyr::summarise(n = dplyr::n())
+
+
+nrow(cosmetic_sentence_topics) == nrow(cosmetic_sentences)
+
+cosmetic_sentence_topics %>% readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds")
 ```
 
 

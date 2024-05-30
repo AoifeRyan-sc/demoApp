@@ -30,7 +30,7 @@ embed_text_server <- function(id, r) {
       }
       
       # take a sample to speed up rendering
-      if(length(selected_texts() > 15)){
+      if(length(selected_texts()) > 15){
         sample_selected <- selected_texts()[sample(length(selected_texts()), 15)]
       } else {
         sample_selected <- selected_texts()
