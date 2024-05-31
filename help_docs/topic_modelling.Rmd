@@ -589,3 +589,26 @@ food_data_adj %>%
 #     topic_title == "Food Recipes & Menus" ~ ""
 #   ))
 ```
+
+
+# Trying different params to reduce automotive and food data to 2d
+```{r}
+
+```
+
+
+# fixing topic labels
+```{r}
+automotive_data_adj <- automotive_data %>%
+  dplyr::mutate(kmeans_topic_title = dplyr::case_when(
+    kmeans_topic_title == "Modern Technologies\n& Advancements" ~
+      "Modern\nTechnologies &\nAdvancements",
+    kmeans_topic_title == "Sustainable Motoring" ~
+      "Sustainable\nMotoring",
+    TRUE ~ kmeans_topic_title
+  ))
+
+
+automotive_data_adj %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_df.rds")
+```

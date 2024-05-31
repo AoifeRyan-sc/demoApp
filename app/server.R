@@ -5,10 +5,15 @@ server <- function(input, output, session) {
   )
 
   dataUploadServer("data_upload_panel", r)
-  
+
   umapServer("umap_panel", r)
-  
+
   embed_text_server("embed_text_panel", r)
   searchServer("semantic_search_panel", r)
 }
 
+# server <- function(input, output, session) {
+# 
+# 
+# }
+# 

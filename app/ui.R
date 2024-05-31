@@ -1,6 +1,6 @@
 ui <- bslib::page_fillable(
   tags$style(HTML("g.hovertext > path {opacity: .8;}")),
-  
+
   theme = bslib::bs_theme(
     bootswatch = "sandstone",
     heading_font = bslib::font_face(family = "Cinzel-SemiBold",
@@ -28,9 +28,20 @@ ui <- bslib::page_fillable(
             embed_text_ui("embed_text_panel"),
             fillable = TRUE,
             fill = TRUE
-          ) 
+          )
         )
     )
-    
-  )
 
+  )
+# 
+# 
+# ui <- shiny::fluidPage(
+#   shiny::actionButton("update_plot", "Update Plot",
+#                       class = "btn-success"
+#   ),
+#   shinyBS::bsTooltip("update_plot",
+#                      "testing 123",
+#                      placement = "right", trigger = "hover",
+#                      options = NULL)
+# )
+# 
