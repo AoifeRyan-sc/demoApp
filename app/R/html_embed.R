@@ -42,9 +42,9 @@ create_tweet_embed <- function(permalink) {
   #                            width = "36px", height = "30px",
   #                            style = "margin-left: 20px; margin-right: 10px")
 
-  x_logo <-  htmltools::tags$img(src ="x_logo.png", align = "right",
+  x_logo <-  shiny::tags$img(src ="x_logo.png", align = "right",
                              width = "36px", height = "30px",
-                             style = "margin-right: 20px; margin-bottom: 50px")
+                             style = "margin-right: 20px; margin-botom: 50px")
  
   if (!is.null(tweet_blockquote)) {
     html <- paste0(

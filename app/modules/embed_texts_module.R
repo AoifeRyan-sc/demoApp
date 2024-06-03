@@ -2,9 +2,7 @@ embed_text_ui <- function(id){
   ns <- shiny::NS(id)
   
   shiny::tagList(
-    shinycssloaders::withSpinner(
-      shiny::uiOutput(ns("embeddedTexts"))
-    )
+    shiny::uiOutput(ns("embeddedTexts"))
   )
 }
 
