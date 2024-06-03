@@ -47,7 +47,6 @@ umapServer <- function(id, r){
         r$cluster_type <- "kmeans"
       } else {
         r$cluster_type <- "hdbscan"
-        print("hdbscan")
       }
     })
     

@@ -29,14 +29,18 @@ umapColourCreate <- function(df){
   # topics <- unique(df$kmeans_topic_title) # number of colours
   topics <- unique(df$topic_title) # number of colours
   colours <- viridis::viridis( # colour shades
-    n = length(topics), 
-    begin = 0.08, end = 0.92, 
-    option = "D", direction = 1
+    n = length(topics),
+    begin = 0.3, end = 0.92,
+    option = "B", direction = 1
   )
+  # colours <- hcl.colors(n = length(topics)
+                        # palette = "Blue-Red 3"
+                        # )
+  
   
   names(colours) <- topics
   
-  colour_lighter <- adjust_colour_lighter(colours, og_val = 0.6)
+  colour_lighter <- adjust_colour_lighter(colours, og_val = 0.7)
   colour_darker <- adjust_colour_darker(colours, og_val = 5)
   
   names(colour_lighter) <- topics # name colours
@@ -96,11 +100,135 @@ umapCreateHoverText <- function(df, colours){
   return(hover_text)
 }
 
+createUmapLayout <- function(p){
+  p <- p %>%
+    plotly::layout(dragmode = "lasso",
+                   showlegend = TRUE,
+                   xaxis = list(showgrid = FALSE, showline = FALSE, zeroline = FALSE, showticklabels = FALSE, visile = FALSE, title = ""),
+                   yaxis = list(showgrid = FALSE, showline = FALSE, zeroline = FALSE,  showticklabels = FALSE, visile = FALSE, title = ""),
+                   legend = list(itemsizing = "constant",  orientation = "h",  xanchor = "center", x = 0.5,
+                                 font = list(family = "Cinzel-Regular", size = 12)
+                   )
+    ) %>%
+    plotly::config(
+      scrollZoom = TRUE,
+      displaylogo = FALSE,
+      edits = list(shapePosition = TRUE, annotation = TRUE)
+    ) 
+  
+  return(p)
+}
+
+createClusterLabels <- function(p, cluster_lookup){
+  
+cluster_lookup$formatted_text <- sprintf("<b>%s</b>", cluster_lookup$label)
+  
+ p <- p %>%
+   plotly::add_annotations( # white shadow on cluster labels
+    x = cluster_lookup$centroid_x,  # slight offset for the shadow
+    y = cluster_lookup$centroid_y,  # slight offset for the shadow
+    # text = cluster_lookup$label,
+    text = cluster_lookup$formatted_text,
+    showarrow = FALSE,
+    opacity = 1,
+    xshift = 1, yshift = -1, # Adjust shadow position
+    font = list(size = 20, family = "Cinzel", color = "white")
+  ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     # text = cluster_lookup$label,
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = -1, yshift = -1, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     # text = cluster_lookup$label,
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = -1, yshift = 1, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     # text = cluster_lookup$label,
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = 1, yshift = 1, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     # text = cluster_lookup$label,
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = 0, yshift = -1, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     # text = cluster_lookup$label,
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = 0, yshift = 1, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     # text = cluster_lookup$label,
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = -1, yshift = 0, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   ) %>%
+   plotly::add_annotations( # white shadow on cluster labels
+     x = cluster_lookup$centroid_x,  # slight offset for the shadow
+     y = cluster_lookup$centroid_y,  # slight offset for the shadow
+     text = cluster_lookup$formatted_text,
+     showarrow = FALSE,
+     opacity = 1,
+     xshift = 1, yshift = 0, # Adjust shadow position
+     font = list(size = 20, family = "Cinzel", color = "white")
+   )
+  
+  for (i in 1:nrow(cluster_lookup)) { # text infront of shadow
+  
+    p <- p %>% plotly::add_annotations(
+      x = cluster_lookup$centroid_x[i],
+      y = cluster_lookup$centroid_y[i],
+      text = cluster_lookup$formatted_text[i],
+      showarrow = FALSE,
+      opacity = 1,
+      font = list(size = 20, family = "Cinzel",
+                  color = "#141414"
+                  # color = cluster_lookup$colour_map[i]
+      )
+    )
+  }
+ 
+ return(p)
+}
 
 createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
   
   if (cluster_type == "kmeans"){
     df <- df %>% dplyr::mutate(topic_title = kmeans_topic_title)
+    if (!is.null(highlight_df)){
+      highlight_df <- highlight_df %>% dplyr::mutate(topic_title = kmeans_topic_title)
+    }
   } else {
     topic_count <- df %>%
       dplyr::group_by(hdb_topic_title) %>%
@@ -115,6 +243,12 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
                         topic_title,
                       TRUE ~ ""
                     )) 
+    
+    if (!is.null(highlight_df)){
+      highlight_df <- highlight_df %>% 
+        dplyr::mutate(topic_title = kmeans_topic_title) 
+
+    }
   }
   
   colour_list <- umapColourCreate(df) # create umap colours
@@ -122,7 +256,10 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
   colour_darker <- colour_list[[2]]
   colours <- colour_list[[3]]
   
-  cluster_lookup <- umapClusterLookup(df, colour_darker) # create cluster label lookup
+  cluster_lookup <- umapClusterLookup(df, 
+                                      # colour_darker
+                                      colour_lighter
+                                      ) # create cluster label lookup
   
   if(is.null(highlight_df)){
     plot_df <- df 
@@ -139,20 +276,18 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
     data = plot_df,
     width = 1000, height = 650,
     x = ~V1, y = ~V2,
-    key = ~universal_message_id,
+    key = ~universal_message_id, 
     type = "scattergl",
     mode = "markers",
     text = ~hover_text,
     hoverinfo = "text",
-    # color = ~kmeans_topic_title,
     color = ~topic_title,
-    colors = colour_lighter,
-    
+    colors = colours,
     hoverlabel = list(bgcolor = 'rgba(255,255,255,0.75)',
                       font = list(family = "Cinzel-Regular")
     ),
     
-    marker = list(opacity = 0.55,
+    marker = list(opacity = 0.6,
                   size = 4
     ),
     source = "umap_plot",
@@ -170,171 +305,19 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
                         mode = "markers",
                         key = ~universal_message_id,
                         showlegend = FALSE,
-                        marker = list(opacity = 0.5, size = 4, color = "#cccccc",
+                        marker = list(opacity = 0.6, size = 4, color = "#cccccc",
                                       showlegend = TRUE),
                         hoverinfo = "skip")
     
   }
   
   
-  p <- p %>%
-    plotly::layout(dragmode = "lasso",
-                   showlegend = TRUE,
-                   xaxis = list(showgrid = FALSE, showline = FALSE, zeroline = FALSE, showticklabels = FALSE, visile = FALSE, title = ""),
-                   yaxis = list(showgrid = FALSE, showline = FALSE, zeroline = FALSE,  showticklabels = FALSE, visile = FALSE, title = ""),
-                   legend = list(itemsizing = "constant",  orientation = "h",  xanchor = "center", x = 0.5,
-                                 font = list(family = "Cinzel-Regular", size = 12)
-                   )
-    ) %>%
-    plotly::config(
-      scrollZoom = TRUE,
-      displaylogo = FALSE,
-      edits = list(shapePosition = TRUE, annotation = TRUE)
-    ) %>%
-    plotly::add_annotations( # white shadow on cluster labels
-      x = cluster_lookup$centroid_x,  # slight offset for the shadow
-      y = cluster_lookup$centroid_y,  # slight offset for the shadow
-      text = cluster_lookup$label,
-      showarrow = FALSE,
-      opacity = 1,
-      xshift = 1, yshift = -1, # Adjust shadow position
-      font = list(size = 18, family = "Cinzel", color = "white")
-    )
+  p <- createUmapLayout(p)
+   
   
-  # cluster labelling: front of shadow ----
-  for (i in 1:nrow(cluster_lookup)) {
-    
-    p <- p %>% plotly::add_annotations(
-      x = cluster_lookup$centroid_x[i],
-      y = cluster_lookup$centroid_y[i],
-      text = cluster_lookup$label[i],
-      showarrow = FALSE,
-      font = list(size = 18, family = "Cinzel",
-                  # color = "#000080"
-                  # color = colour_darker[cluster_lookup$label[i]]
-                  color = cluster_lookup$colour_map[i]
-      )
-    )
-  }
-  # ----
+  p <- createClusterLabels(p = p, cluster_lookup = cluster_lookup)
   
   return(p)
   
   
 }
-
-
-#' UMAP Ui Server Function
-#'
-#' @param id parameter for shiny identification
-#' @param df reactive dataframe containing docs and embedding info 
-#' @param cluster_var reactive list of groups vorresponding to docs in df that is the colour var in the umap
-#'
-#' @noRd
-#' 
-# createUmapSave <- function(df, highlight_df = NULL, grey_df = NULL){
-#   
-#   colour_list <- umapColourCreate(df) # create umap colours
-#   colour_lighter <- colour_list[[1]]
-#   colour_darker <- colour_list[[2]]
-#   colours <- colour_list[[3]]
-# 
-#   cluster_lookup <- umapClusterLookup(df, colour_darker) # create cluster label lookup
-#   
-#   if(is.null(highlight_df)){
-#     plot_df <- df 
-#     size = 4
-#   } else{
-#     plot_df <- highlight_df
-#     size = 10
-#   }
-#   
-#   plot_df <- plot_df %>%
-#     dplyr::mutate(hover_text = umapCreateHoverText(plot_df, colours))
-# 
-#   p <- plotly::plot_ly(
-#     data = plot_df,
-#     width = 1000, height = 650,
-#     x = ~V1, y = ~V2,
-#     key = ~universal_message_id,
-#     type = "scattergl",
-#     mode = "markers",
-#     text = ~hover_text,
-#     hoverinfo = "text",
-#     color = ~kmeans_topic_title,
-#     colors = colour_lighter,
-# 
-#     hoverlabel = list(bgcolor = 'rgba(255,255,255,0.75)',
-#                       font = list(family = "Cinzel-Regular")
-#     ),
-# 
-#   marker = list(opacity = 0.55,
-#                 size = 4
-#     ),
-#     source = "umap_plot",
-#     showlegend = TRUE
-#   ) 
-#   
-#   if (!is.null(grey_df)){
-#     grey_df <- grey_df %>% dplyr::mutate(hover_text = "")
-#     
-#     p <- p %>%
-#       plotly::add_trace(data = grey_df,
-#                         x = ~V1, y = ~V2,
-#                         name = 'No search similarity',
-#                         type = "scattergl",
-#                         mode = "markers",
-#                         key = ~universal_message_id,
-#                         showlegend = FALSE,
-#                         marker = list(opacity = 0.5, size = 4, color = "#cccccc",
-#                                       showlegend = TRUE),
-#                         hoverinfo = "skip")
-# 
-#   }
-# 
-# 
-#   p <- p %>%
-#     plotly::layout(dragmode = "lasso",
-#                    showlegend = TRUE,
-#                    xaxis = list(showgrid = FALSE, showline = FALSE, zeroline = FALSE, showticklabels = FALSE, visile = FALSE, title = ""),
-#                    yaxis = list(showgrid = FALSE, showline = FALSE, zeroline = FALSE,  showticklabels = FALSE, visile = FALSE, title = ""),
-#                    legend = list(itemsizing = "constant",  orientation = "h",  xanchor = "center", x = 0.5,
-#                                  font = list(family = "Cinzel-Regular", size = 12)
-#                    )
-#     ) %>%
-#     plotly::config(
-#       scrollZoom = TRUE,
-#       displaylogo = FALSE,
-#       edits = list(shapePosition = TRUE, annotation = TRUE)
-#     ) %>%
-#     plotly::add_annotations( # white shadow on cluster labels
-#       x = cluster_lookup$centroid_x,  # slight offset for the shadow
-#       y = cluster_lookup$centroid_y,  # slight offset for the shadow
-#       text = cluster_lookup$label,
-#       showarrow = FALSE,
-#       opacity = 1,
-#       xshift = 1, yshift = -1, # Adjust shadow position
-#       font = list(size = 18, family = "Cinzel", color = "white")
-#     )
-# 
-#   # cluster labelling: front of shadow ----
-#   for (i in 1:nrow(cluster_lookup)) {
-# 
-#     p <- p %>% plotly::add_annotations(
-#       x = cluster_lookup$centroid_x[i],
-#       y = cluster_lookup$centroid_y[i],
-#       text = cluster_lookup$label[i],
-#       showarrow = FALSE,
-#       font = list(size = 18, family = "Cinzel",
-#                   # color = "#000080"
-#                   # color = colour_darker[cluster_lookup$label[i]]
-#                   color = cluster_lookup$colour_map[i]
-#                   )
-#     )
-#   }
-#   # ----
-# 
-#   return(p)
-#   
-#   
-# }
