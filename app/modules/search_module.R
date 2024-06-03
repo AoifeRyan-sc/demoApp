@@ -3,8 +3,7 @@ searchUi <- function(id) {
   
   shiny::tagList(
     shiny::textInput(ns("search_term"), "Enter search term:", placeholder = "face") %>%
-      bslib::popover(ns("search_input_popover"),
-                     "This searches the dataset for 
+      bslib::popover("This searches the dataset for 
                      both the specific word(s) entered 
                      and phrases that have a similar meaning
                      to the word(s) entered. You can enter a 
@@ -24,8 +23,7 @@ searchUi <- function(id) {
         style = "position: absolute; top: -15px; left: 20%; transform: translateX(-30%);",
         "Term Similarity"
       ) %>%
-        bslib::popover(ns("slider_popover"), 
-        "This adjusts how similar 
+        bslib::popover("This adjusts how similar 
                        you would like the output 
                        to be to the input search term. 
                        Setting the slider all the way to 
@@ -50,11 +48,15 @@ searchUi <- function(id) {
   shiny::fluidRow(
     shiny::column(
       width = 6,
-      shiny::actionButton(ns("update_plot"), "Update Plot") 
+      shiny::actionButton(ns("update_plot"), "Update Plot", 
+                          # class = "btn-success"
+                          ) 
     ),
     shiny::column(
       width = 6,
-      shiny::actionButton(ns("reset_plot"), "Reset Plot") 
+      shiny::actionButton(ns("reset_plot"), "Reset Plot", 
+                          # class = "btn-warning"
+                          ) 
     )
   )
   )
@@ -66,24 +68,24 @@ searchServer <- function(id, r) {
     ns <- session$ns
     
     # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-    #                 "for_app/cosmetic_sentences.rds",
-    #                 "for_app/automotive_sentences_embeddings.rds",
-    #                 "for_app/automotive_sentences.rds",
-    #                 "for_app/food_beverage_sentences_embeddings.rds",
-    #                 "for_app/food_beverage_sentences.rds")
-    # 
-    # for (file_path in file_paths) {
-    # 
-    #   file <- googledrive::drive_get(file_path)
-    #   temp_file <- tempfile(fileext = ".rds")
-    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-    # 
-    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-    # 
-    #   data <- readRDS(temp_file)
-    #   assign(category, data)
-    # }
+    file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
+                    "for_app/cosmetic_sentences.rds",
+                    "for_app/automotive_sentences_embeddings.rds",
+                    "for_app/automotive_sentences.rds",
+                    "for_app/food_beverage_sentences_embeddings.rds",
+                    "for_app/food_beverage_sentences.rds")
+
+    for (file_path in file_paths) {
+
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+      category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
+
+      data <- readRDS(temp_file)
+      assign(category, data)
+    }
     # ----
     
     # r$calculating_plot <- shiny::reactiveVal(FALSE)
