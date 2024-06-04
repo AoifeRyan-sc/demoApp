@@ -1,15 +1,52 @@
 searchUi <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
-    shiny::textInput(ns("search_term"), "Enter search term:", placeholder = "face") %>%
-      bslib::popover(ns("search_input_popover"),
-                     "This searches the dataset for 
-                     both the specific word(s) entered 
+    # shiny::tags$head(
+    #   shiny::tags$style(shiny::HTML("
+    #         .my-tip {
+    #             background-color: #f0f9e8;
+    #         }
+    #         .my-tip .my-tip-body {
+    #             background-color: #f0f9e8; 
+    #         }
+    #     "))
+    # ),
+    # shinyWidgets::textInputIcon(ns("search_term"), "Enter search term:", placeholder = "face",
+    #                               icon = icon("circle-user")
+    #                             ) %>%
+    # htmltools::div(
+    #   div(
+    #     class = "input-container",
+    #     textInput("search_term", "Enter search term:", placeholder = "face", width = "70%") %>% 
+    #       tagAppendAttributes(class = "text-input"),
+    #     bslib::tooltip(
+    #       bsicons::bs_icon("question-circle-fill"),
+    #       "This searches the dataset for both the specific word(s) entered 
+    #       and phrases that have a similar meaning to the word(s) entered. 
+    #       You can enter a single word or an idea that you would like to search for.",
+    #       options = list(customClass = "my-tip")
+    #     ) %>% 
+    #       tagAppendAttributes(class = "info-icon")
+    # )
+    # ),
+
+    htmltools::div(
+      div(
+          style = "position: relative;",
+          shiny::textInput(ns("search_term"), "Enter search term:", placeholder = "face"), 
+        div(
+          style = "position: absolute; top: 0; right: 5px; transform: translateX(-20%);",
+          bsicons::bs_icon("question-circle-fill")
+        )
+      ) %>%
+        bslib::popover("This searches the dataset for 
+                     both the specific word(s) entered
                      and phrases that have a similar meaning
-                     to the word(s) entered. You can enter a 
-                     single word or an idea that you would 
-                     like to search for."),
+                     to the word(s) entered. You can enter a
+                     single word or an idea that you would
+                     like to search for.")
+      
+    ),
     htmltools::tags$style(HTML("
     .irs-from, .irs-to, .irs-min, .irs-max, .irs-single {
       visibility: hidden !important;
@@ -22,16 +59,19 @@ searchUi <- function(id) {
                   min = 0, max = 1, value = 0.5, ticks = FALSE),
       htmltools::div( # slider title
         style = "position: absolute; top: -15px; left: 20%; transform: translateX(-30%);",
-        "Term Similarity"
+        "Term Similarity",
       ) %>%
-        bslib::popover(ns("slider_popover"), 
-        "This adjusts how similar 
+        bslib::popover("This adjusts how similar 
                        you would like the output 
                        to be to the input search term. 
                        Setting the slider all the way to 
                        the left sets the similarity to 0 
                        and so you are only searching for 
                        the exact word(s) entered"),
+      htmltools::div(
+        style = "position: absolute; top: -15px; right: -10px; transform: translateX(-20%);",
+        bsicons::bs_icon("question-circle-fill")
+      ),
       htmltools::div( # slider lower bound label
         style = "position: absolute; top: 45px; left: 0; transform: translateX(-20%); font-family: Cinzel-Regular; src: fonts/Cinzel-Regular.ttf;",
         "Low"

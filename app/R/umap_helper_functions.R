@@ -122,88 +122,26 @@ createUmapLayout <- function(p){
 createClusterLabels <- function(p, cluster_lookup){
   
 cluster_lookup$formatted_text <- sprintf("<b>%s</b>", cluster_lookup$label)
+shadow_positions <- rbind(expand.grid(rep(list(c(1, -1)), 2)), 
+                          c(1,0), c(-1,0), c(0,1), c(0,-1))
+                          # expand.grid(rep(list(c(1, 0)), 2)))
+
+for (i in 1:6){
+  p <- p %>%
+    plotly::add_annotations( # white shadow on cluster labels
+      x = cluster_lookup$centroid_x,  # slight offset for the shadow
+      y = cluster_lookup$centroid_y,  # slight offset for the shadow
+      # text = cluster_lookup$label,
+      text = cluster_lookup$formatted_text,
+      showarrow = FALSE,
+      opacity = 1,
+      # xshift = 1, yshift = -1, # Adjust shadow position
+      xshift = shadow_positions$Var1[i], yshift = shadow_positions$Var2[i],
+      font = list(size = 20, family = "Cinzel", color = "white")
+    )
+}
   
- p <- p %>%
-   plotly::add_annotations( # white shadow on cluster labels
-    x = cluster_lookup$centroid_x,  # slight offset for the shadow
-    y = cluster_lookup$centroid_y,  # slight offset for the shadow
-    # text = cluster_lookup$label,
-    text = cluster_lookup$formatted_text,
-    showarrow = FALSE,
-    opacity = 1,
-    xshift = 1, yshift = -1, # Adjust shadow position
-    font = list(size = 20, family = "Cinzel", color = "white")
-  ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     # text = cluster_lookup$label,
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = -1, yshift = -1, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     # text = cluster_lookup$label,
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = -1, yshift = 1, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     # text = cluster_lookup$label,
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = 1, yshift = 1, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     # text = cluster_lookup$label,
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = 0, yshift = -1, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     # text = cluster_lookup$label,
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = 0, yshift = 1, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     # text = cluster_lookup$label,
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = -1, yshift = 0, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   ) %>%
-   plotly::add_annotations( # white shadow on cluster labels
-     x = cluster_lookup$centroid_x,  # slight offset for the shadow
-     y = cluster_lookup$centroid_y,  # slight offset for the shadow
-     text = cluster_lookup$formatted_text,
-     showarrow = FALSE,
-     opacity = 1,
-     xshift = 1, yshift = 0, # Adjust shadow position
-     font = list(size = 20, family = "Cinzel", color = "white")
-   )
-  
+
   for (i in 1:nrow(cluster_lookup)) { # text infront of shadow
   
     p <- p %>% plotly::add_annotations(
@@ -288,14 +226,15 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
     ),
     
     marker = list(opacity = 0.6,
-                  size = 4
+                  size = size
     ),
     source = "umap_plot",
     showlegend = TRUE
   ) 
   
   if (!is.null(grey_df)){
-    grey_df <- grey_df %>% dplyr::mutate(hover_text = "")
+    grey_df <- grey_df %>% dplyr::mutate(hover_text = "",
+                                         topic_title = kmeans_topic_title)
     
     p <- p %>%
       plotly::add_trace(data = grey_df,
@@ -311,11 +250,11 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
     
   }
   
-  
   p <- createUmapLayout(p)
    
   
   p <- createClusterLabels(p = p, cluster_lookup = cluster_lookup)
+
   
   return(p)
   
