@@ -28,6 +28,9 @@ source(here("app/modules/embed_texts_module.R"))
 source(here("app/ui.R"))
 source(here("app/server.R"))
 
+# profvis::profvis({
+    # shiny::runApp(here::here("app"))
+# })
 # Run an app the IDE way if in an interactive session, else run it the terminal/deployment way:
 if(interactive()){
   shinyApp(ui, server)

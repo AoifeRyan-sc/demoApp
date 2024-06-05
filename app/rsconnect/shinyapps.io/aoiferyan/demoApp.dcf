@@ -5,7 +5,7 @@ account: aoiferyan
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12123432
-bundleId: 8700114
+bundleId: 8704252
 url: https://aoiferyan.shinyapps.io/demoApp/
 version: 1
 asMultiple: FALSE
