@@ -51,6 +51,7 @@ umapServer <- function(id, r){
     })
     
     output$umap_plot <- plotly::renderPlotly({
+      print(class(r$df))
       if(is.null(r$highlight_df)){
         createUmap(df = r$df(), highlight_df = NULL, grey_df = NULL, cluster_type = r$cluster_type)
       } else{

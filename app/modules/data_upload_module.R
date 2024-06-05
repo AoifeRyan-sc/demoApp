@@ -46,12 +46,28 @@ dataUploadServer <- function(id, r){
     # ----
 
     df <- shiny::reactive({
-      test <- switch(input$dataset,
-             # "Beauty & Cosmetics" = cosmetic_data
-             "Beauty & Cosmetics" = cosmetic_data,
-             "Automotive" = automotive_data,
-             "Food & Beverages" = food_data
-             )
+      
+      file_paths <- switch(input$dataset,
+                           "Beauty & Cosmetics" = "for_app/cosmetic_df.rds",
+                           "Automotive" = "for_app/automotive_df.rds",
+                           "Food & Beverages" = "for_app/food_beverage_df.rds")
+
+        file <- googledrive::drive_get(file_path)
+        temp_file <- tempfile(fileext = ".rds")
+        googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+        category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
+        
+        readRDS(temp_file)
+        # data <- readRDS(temp_file)
+        # assign(paste0(category, "_data"), data)
+        
+      # test <- switch(input$dataset,
+      #        # "Beauty & Cosmetics" = cosmetic_data
+      #        "Beauty & Cosmetics" = cosmetic_data,
+      #        "Automotive" = automotive_data,
+      #        "Food & Beverages" = food_data
+      #        )
     })
     
     

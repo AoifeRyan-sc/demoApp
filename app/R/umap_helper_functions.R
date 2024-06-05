@@ -167,6 +167,8 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
     if (!is.null(highlight_df)){
       highlight_df <- highlight_df %>% dplyr::mutate(topic_title = kmeans_topic_title)
     }
+    
+    grey_highlight <- NULL
   } else {
     topic_count <- df %>%
       dplyr::group_by(hdb_topic_title) %>%
@@ -174,20 +176,51 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
       dplyr::arrange(desc(n)) %>%
       head(10)
     
-    df <- df %>% 
-      dplyr::mutate(topic_title = hdb_topic_title,
-                    topic_title = dplyr::case_when(
-                      topic_title %in% topic_count$hdb_topic_title ~
-                        topic_title,
-                      TRUE ~ ""
-                    )) 
+    grey_highlight <- NULL
     
     if (!is.null(highlight_df)){
-      highlight_df <- highlight_df %>% 
-        dplyr::mutate(topic_title = kmeans_topic_title) 
+      # highlight_df <- highlight_df %>%
+      #   dplyr::mutate(topic_title = hdb_topic_title,
+      #                 topic_title = dplyr::case_when(
+      #                   topic_title %in% topic_count$hdb_topic_title ~
+      #                     topic_title,
+      #                   TRUE ~ ""
+      #                 ))
+      
+      grey_highlight <- highlight_df %>%
+        dplyr::mutate(topic_title = hdb_topic_title) %>%
+        dplyr::filter(!topic_title %in% topic_count$hdb_topic_title)
+      
+      highlight_df <- highlight_df %>%
+        dplyr::mutate(topic_title = hdb_topic_title) %>%
+        dplyr::filter(topic_title %in% topic_count$hdb_topic_title)
+      
+      # grey_df <- grey_df %>%
+      #   dplyr::mutate(topic_title = hdb_topic_title) %>%
+      #   dplyr::bind_rows(small_topics, .id = "id")
+      grey_df <- grey_df %>% dplyr::mutate(topic_title = hdb_topic_title)
+        
 
     }
+    
+    grey_df <- df %>%
+      dplyr::mutate(topic_title = hdb_topic_title) %>%
+      dplyr::filter(!topic_title %in% topic_count$hdb_topic_title)
+    print(nrow(grey_df))
+    
+    df <- df %>% 
+      dplyr::mutate(topic_title = hdb_topic_title) %>%
+      dplyr::filter(topic_title %in% topic_count$hdb_topic_title)
+    print(nrow(df))
+      # dplyr::anti_join(grey)
+      # dplyr::mutate(topic_title = hdb_topic_title,
+      #               topic_title = dplyr::case_when(
+      #                 topic_title %in% topic_count$hdb_topic_title ~
+      #                   topic_title,
+      #                 TRUE ~ ""
+                    # )) 
   }
+  
   
   colour_list <- umapColourCreate(df) # create umap colours
   colour_lighter <- colour_list[[1]]
@@ -209,7 +242,7 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
   
   plot_df <- plot_df %>%
     dplyr::mutate(hover_text = umapCreateHoverText(plot_df, colours))
-  
+  nrow(plot_df)
   p <- plotly::plot_ly(
     data = plot_df,
     width = 1000, height = 650,
@@ -234,7 +267,8 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
   
   if (!is.null(grey_df)){
     grey_df <- grey_df %>% dplyr::mutate(hover_text = "",
-                                         topic_title = kmeans_topic_title)
+                                         topic_title = "")
+    nrow(grey_df)
     
     p <- p %>%
       plotly::add_trace(data = grey_df,
@@ -243,11 +277,48 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
                         type = "scattergl",
                         mode = "markers",
                         key = ~universal_message_id,
-                        showlegend = FALSE,
-                        marker = list(opacity = 0.6, size = 4, color = "#cccccc",
+                        showlegend = TRUE,
+                        marker = list(
+                          size = 4,
+                          opacity = 0.3,
+                          # opacity = 0.4, size = 4, 
+                                      # color = "#ececec",
+                          # color = "red",
+                                      color = "#cccccc",
                                       showlegend = TRUE),
                         hoverinfo = "skip")
     
+  }
+  
+  if (!is.null(grey_highlight)){
+    
+    grey_highlight <- grey_highlight %>%
+      # dplyr::mutate(hover_text = umapCreateHoverText(grey_highlight, colours))
+      dplyr::mutate(hover_text = text_clean,
+                    topic_title = "")
+    
+    print(nrow(grey_highlight))
+    
+    p <- p %>%
+      plotly::add_trace(data = grey_highlight,
+                        x = ~V1, y = ~V2,
+                        name = 'idk what to call this',
+                        type = "scattergl",
+                        mode = "markers",
+                        key = ~universal_message_id,
+                        text = ~hover_text,
+                        showlegend = TRUE,
+                        marker = list(opacity = 0.6, size = 10, 
+                                      # color = "#cccccc", "#bfbfbf", "#b5b5b5", "#bababa"
+                                      # color = "#b5b5b5",
+                                      color = "#FFFDD0",
+                                      showlegend = TRUE),
+                        hoverinfo = "text",
+                        hoverlabel = list(bgcolor = 'rgba(255,255,255,0.75)',
+                                          font = list(family = "Cinzel-Regular")
+                        )
+                        # visible = "legendonly"
+                        )
   }
   
   p <- createUmapLayout(p)

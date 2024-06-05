@@ -17,7 +17,6 @@ searchUi <- function(id) {
                      single word or an idea that you would
                      like to search for.")
       ) 
-      
     ),
     htmltools::tags$style(HTML("
     .irs-from, .irs-to, .irs-min, .irs-max, .irs-single {
@@ -98,44 +97,89 @@ searchServer <- function(id, r) {
     # }
     # ----
     
+    sentence_df <- shiny::reactive({
+      
+      file_path <- switch(r$input_dataset,
+                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences.rds",
+                          "Automotive" = "for_app/automotive_sentences.rds",
+                          "Food & Beverages" = "for_app/food_beverage_sentences.rds")
+    
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+
+      readRDS(temp_file)
+      
+    })
+    
+    sentence_embeddings <- shiny::reactive({
+      file_path <- switch(r$input_dataset,
+                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences_embeddings.rds",
+                          "Automotive" = "for_app/automotive_sentences_embeddings.rds",
+                          "Food & Beverages" = "for_app/food_beverage_sentences_embeddings.rds"
+                          ) 
+      
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+      
+      readRDS(temp_file) %>% as.matrix()
+    })
+
+    
+    
     # r$calculating_plot <- shiny::reactiveVal(FALSE)
     observeEvent(input$update_plot, {
-      # r$calculating_plot <- TRUE
+      # the shiny::need error messages aren't displaying so also using showNotification
+      if (input$search_term == "") {
+        shiny::showNotification("Enter a search term before updating plot", type = "error")
+        return(NULL)
+      }
+      
+      if (!grepl("^[a-zA-Z0-9 ]*$", input$search_term)){
+        shiny::showNotification("Invalid characters detected! Please use only alphanumeric characters and spaces.", type = "error")
+      }
+      
+      if (input$search_term == "") {
+        shiny::showNotification("Error: Please enter some text.", type = "error")
+        return(NULL)
+      }
       shiny::validate(
         shiny::need(
           input$search_term != "",
-          "Enter a search term before updating plot"
+          message = FALSE
         )
       )
       shiny::validate(
         shiny::need(grepl("^[a-zA-Z0-9 ]*$", input$search_term), 
-                    "Invalid characters detected! Please use only alphanumeric characters and spaces.")
+                    message = FALSE)
         )
       
-      sentence_embeddings <- switch(r$input_dataset,
-                                "Beauty & Cosmetics" = cosmetic_sentences_embeddings,
-                                "Automotive" = automotive_sentences_embeddings,
-                                "Food & Beverages" = food_data_sentences_embeddings
-      ) %>% as.matrix()
+      # sentence_embeddings <- switch(r$input_dataset,
+      #                           "Beauty & Cosmetics" = cosmetic_sentences_embeddings,
+      #                           "Automotive" = automotive_sentences_embeddings,
+      #                           "Food & Beverages" = food_data_sentences_embeddings
+      # ) %>% as.matrix()
+      # 
+      # sentence_df <- switch(r$input_dataset,
+      #                       "Beauty & Cosmetics" = cosmetic_sentences,
+      #                       "Automotive" = automotive_sentences,
+      #                       "Food & Beverages" = food_data_sentences
+      # )
       
-      sentence_df <- switch(r$input_dataset,
-                            "Beauty & Cosmetics" = cosmetic_sentences,
-                            "Automotive" = automotive_sentences,
-                            "Food & Beverages" = food_data_sentences
-      )
       semantic_similarity_output <- cosine_calculation_threshold_sentence(
         reference_statement = input$search_term,
         cosine_sim_threshold = input$semantic_sim_threshold,
         # reference_statement = "face",
         # cosine_sim_threshold = 0.5,
         embedding_model = "multi-qa-mpnet-base-cos-v1",
-        sentence_matrix = sentence_embeddings,
-        df = sentence_df
+        sentence_matrix = sentence_embeddings(),
+        df = sentence_df()
         # sentence_matrix = as.matrix(cosmetic_sentences_embeddings),
         # df = cosmetic_sentences
         ) %>% 
         # process_sentences(cosmetic_sentences)
-        process_sentences(sentence_df)
+        process_sentences(sentence_df())
         
        keyword_search_output <- keyword_search(
          df = r$df(),
@@ -167,11 +211,11 @@ searchServer <- function(id, r) {
 
     })
     
-    # observeEvent(input$reset_plot, {
-    #   r$calculating_plot <- FALSE
-    #   r$grey_df <- NULL
-    #   r$highlight_df <- NULL
-    # })
+    observeEvent(input$reset_plot, {
+      # r$calculating_plot <- FALSE
+      r$grey_df <- NULL
+      r$highlight_df <- NULL
+    })
     
     
     })

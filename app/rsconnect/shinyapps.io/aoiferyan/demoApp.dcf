@@ -1,0 +1,12 @@
+name: demoApp
+title: app
+username: aoiferyan
+account: aoiferyan
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12123432
+bundleId: 8700114
+url: https://aoiferyan.shinyapps.io/demoApp/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
