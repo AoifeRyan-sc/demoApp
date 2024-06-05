@@ -25,29 +25,9 @@ dataUploadUi <- function(id){
 dataUploadServer <- function(id, r){
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-  # file_paths <- c("for_app/cosmetic_df.rds",
-  #                 "for_app/automotive_df.rds",
-  #                 "for_app/food_beverage_df.rds")
-  # 
-  # for (file_path in file_paths) {
-  # 
-  #   file <- googledrive::drive_get(file_path)
-  #   temp_file <- tempfile(fileext = ".rds")
-  #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-  # 
-  #   category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
-  # 
-  #   data <- readRDS(temp_file)
-  #   assign(paste0(category, "_data"), data)
-  # }
 
-    # ----
-
-    df <- shiny::reactive({
-      
-      file_paths <- switch(input$dataset,
+    df <- shiny::eventReactive(input$dataset, {
+      file_path <- switch(input$dataset,
                            "Beauty & Cosmetics" = "for_app/cosmetic_df.rds",
                            "Automotive" = "for_app/automotive_df.rds",
                            "Food & Beverages" = "for_app/food_beverage_df.rds")
@@ -59,21 +39,55 @@ dataUploadServer <- function(id, r){
         category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
         
         readRDS(temp_file)
-        # data <- readRDS(temp_file)
-        # assign(paste0(category, "_data"), data)
-        
-      # test <- switch(input$dataset,
-      #        # "Beauty & Cosmetics" = cosmetic_data
-      #        "Beauty & Cosmetics" = cosmetic_data,
-      #        "Automotive" = automotive_data,
-      #        "Food & Beverages" = food_data
-      #        )
     })
+    
+    sentence_df <- shiny::reactive({
+      
+      file_path <- switch(input$dataset,
+                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences.rds",
+                          "Automotive" = "for_app/automotive_sentences.rds",
+                          "Food & Beverages" = "for_app/food_beverage_sentences.rds")
+      
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+      
+      df <- readRDS(temp_file)
+      
+      if ("text_copy" %in% colnames(df)){
+        df %>% dplyr::rename(text_clean = text_copy)
+      }
+      
+      df
+      
+    })
+
+    sentence_embeddings <- shiny::reactive({
+      file_path <- switch(input$dataset,
+                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences_embeddings.rds",
+                          "Automotive" = "for_app/automotive_sentences_embeddings.rds",
+                          "Food & Beverages" = "for_app/food_beverage_sentences_embeddings.rds"
+      ) 
+      
+      file <- googledrive::drive_get(file_path)
+      temp_file <- tempfile(fileext = ".rds")
+      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
+      
+      readRDS(temp_file) %>% as.matrix()
+    }) 
+    
+    observeEvent(input$dataset, { 
+      sentence_embeddings()
+      sentence_df()
+    }) # lazy reactivity means reactives need to be called to run
     
     
     shiny::observeEvent(df(), {
       r$df <- df
+      r$sentence_df <- sentence_df
+      r$sentence_embeddings <- sentence_embeddings
       r$input_dataset <- input$dataset
+)
       })
   
     

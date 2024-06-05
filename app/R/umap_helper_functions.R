@@ -137,7 +137,7 @@ for (i in 1:6){
       opacity = 1,
       # xshift = 1, yshift = -1, # Adjust shadow position
       xshift = shadow_positions$Var1[i], yshift = shadow_positions$Var2[i],
-      font = list(size = 20, family = "Cinzel", color = "white")
+      font = list(size = 16, family = "Cinzel", color = "white")
     )
 }
   
@@ -150,7 +150,7 @@ for (i in 1:6){
       text = cluster_lookup$formatted_text[i],
       showarrow = FALSE,
       opacity = 1,
-      font = list(size = 20, family = "Cinzel",
+      font = list(size = 16, family = "Cinzel",
                   color = "#141414"
                   # color = cluster_lookup$colour_map[i]
       )

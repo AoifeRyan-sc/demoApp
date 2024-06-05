@@ -701,4 +701,18 @@ openai_hdb_representation <- bt_representation_openai(
    chat = TRUE,
   prompt = custom_prompt
 )
+
+
 ```
+
+```{r}
+test_file <- googledrive::drive_get("for_app/food_beverage_sentences.rds")
+test_temp_file <- tempfile(fileext = ".rds")
+googledrive::drive_download(test_file, path = test_temp_file, overwrite = TRUE)
+test_sentences <- readRDS(test_temp_file)
+test %>% distinct(kmeans_topic_title)
+colnames(test_sentences)
+```
+
+
+

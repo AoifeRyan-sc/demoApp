@@ -76,58 +76,6 @@ searchServer <- function(id, r) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # COMMENTING THIS OUT TO SPEED UP ITERATIVE DEVELOPMENT - NEED TO UNCOMMENT ----
-    # file_paths <- c("for_app/cosmetic_sentences_embeddings.rds",
-    #                 "for_app/cosmetic_sentences.rds",
-    #                 "for_app/automotive_sentences_embeddings.rds",
-    #                 "for_app/automotive_sentences.rds",
-    #                 "for_app/food_beverage_sentences_embeddings.rds",
-    #                 "for_app/food_beverage_sentences.rds")
-    # 
-    # for (file_path in file_paths) {
-    # 
-    #   file <- googledrive::drive_get(file_path)
-    #   temp_file <- tempfile(fileext = ".rds")
-    #   googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-    # 
-    #   category <- sub("for_app/(.*)\\.rds", "\\1", file_path)
-    # 
-    #   data <- readRDS(temp_file)
-    #   assign(category, data)
-    # }
-    # ----
-    
-    sentence_df <- shiny::reactive({
-      
-      file_path <- switch(r$input_dataset,
-                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences.rds",
-                          "Automotive" = "for_app/automotive_sentences.rds",
-                          "Food & Beverages" = "for_app/food_beverage_sentences.rds")
-    
-      file <- googledrive::drive_get(file_path)
-      temp_file <- tempfile(fileext = ".rds")
-      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-
-      readRDS(temp_file)
-      
-    })
-    
-    sentence_embeddings <- shiny::reactive({
-      file_path <- switch(r$input_dataset,
-                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences_embeddings.rds",
-                          "Automotive" = "for_app/automotive_sentences_embeddings.rds",
-                          "Food & Beverages" = "for_app/food_beverage_sentences_embeddings.rds"
-                          ) 
-      
-      file <- googledrive::drive_get(file_path)
-      temp_file <- tempfile(fileext = ".rds")
-      googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
-      
-      readRDS(temp_file) %>% as.matrix()
-    })
-
-    
-    
     # r$calculating_plot <- shiny::reactiveVal(FALSE)
     observeEvent(input$update_plot, {
       # the shiny::need error messages aren't displaying so also using showNotification
@@ -154,32 +102,19 @@ searchServer <- function(id, r) {
         shiny::need(grepl("^[a-zA-Z0-9 ]*$", input$search_term), 
                     message = FALSE)
         )
-      
-      # sentence_embeddings <- switch(r$input_dataset,
-      #                           "Beauty & Cosmetics" = cosmetic_sentences_embeddings,
-      #                           "Automotive" = automotive_sentences_embeddings,
-      #                           "Food & Beverages" = food_data_sentences_embeddings
-      # ) %>% as.matrix()
-      # 
-      # sentence_df <- switch(r$input_dataset,
-      #                       "Beauty & Cosmetics" = cosmetic_sentences,
-      #                       "Automotive" = automotive_sentences,
-      #                       "Food & Beverages" = food_data_sentences
-      # )
-      
       semantic_similarity_output <- cosine_calculation_threshold_sentence(
         reference_statement = input$search_term,
         cosine_sim_threshold = input$semantic_sim_threshold,
         # reference_statement = "face",
         # cosine_sim_threshold = 0.5,
         embedding_model = "multi-qa-mpnet-base-cos-v1",
-        sentence_matrix = sentence_embeddings(),
-        df = sentence_df()
+        sentence_matrix = r$sentence_embeddings(),
+        df = r$sentence_df()
         # sentence_matrix = as.matrix(cosmetic_sentences_embeddings),
         # df = cosmetic_sentences
         ) %>% 
         # process_sentences(cosmetic_sentences)
-        process_sentences(sentence_df())
+        process_sentences(r$sentence_df())
         
        keyword_search_output <- keyword_search(
          df = r$df(),
