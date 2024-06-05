@@ -28,9 +28,9 @@ dataUploadServer <- function(id, r){
 
     df <- shiny::eventReactive(input$dataset, {
       file_path <- switch(input$dataset,
-                           "Beauty & Cosmetics" = "for_app/cosmetic_df.rds",
-                           "Automotive" = "for_app/automotive_df.rds",
-                           "Food & Beverages" = "for_app/food_beverage_df.rds")
+                           "Beauty & Cosmetics" = "for_app/cosmetic_df_sample.rds",
+                           "Automotive" = "for_app/automotive_df_sample.rds",
+                           "Food & Beverages" = "for_app/food_beverage_df_sample.rds")
 
         file <- googledrive::drive_get(file_path)
         temp_file <- tempfile(fileext = ".rds")
@@ -44,9 +44,9 @@ dataUploadServer <- function(id, r){
     sentence_df <- shiny::reactive({
       
       file_path <- switch(input$dataset,
-                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences.rds",
-                          "Automotive" = "for_app/automotive_sentences.rds",
-                          "Food & Beverages" = "for_app/food_beverage_sentences.rds")
+                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences_sample.rds",
+                          "Automotive" = "for_app/automotive_sentences_sample.rds",
+                          "Food & Beverages" = "for_app/food_beverage_sentences_sample.rds")
       
       file <- googledrive::drive_get(file_path)
       temp_file <- tempfile(fileext = ".rds")
@@ -64,9 +64,9 @@ dataUploadServer <- function(id, r){
 
     sentence_embeddings <- shiny::reactive({
       file_path <- switch(input$dataset,
-                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences_embeddings.rds",
-                          "Automotive" = "for_app/automotive_sentences_embeddings.rds",
-                          "Food & Beverages" = "for_app/food_beverage_sentences_embeddings.rds"
+                          "Beauty & Cosmetics" = "for_app/cosmetic_sentences_embeddings_sample.rds",
+                          "Automotive" = "for_app/automotive_sentences_embeddings_sample.rds",
+                          "Food & Beverages" = "for_app/food_beverage_sentences_embeddings_sample.rds"
       ) 
       
       file <- googledrive::drive_get(file_path)

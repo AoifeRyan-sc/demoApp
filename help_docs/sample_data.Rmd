@@ -1,0 +1,146 @@
+---
+title: "sampling_dfs"
+output: html_document
+date: "2024-06-05"
+---
+
+Cosmetic
+```{r}
+library(dplyr)
+set.seed(123)
+
+cosmetic_data <-
+  readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df.rds") %>%
+    mutate(rowid = row_number())
+
+cosmetic_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences.rds") %>%
+  mutate(rowid = row_number())
+
+cosmetic_sentences_embeddings <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings.rds")
+
+cosmetic_embeddings <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/cosmetic_data/cosmetic_hdb_topics_embeddings.csv") %>%
+  dplyr::select(-1)
+
+cosmetic_sample <- cosmetic_data %>% sample_n(5000)
+cosmetic_sentence_sample <- cosmetic_sentences %>%
+  filter(universal_message_id %in% cosmetic_sample$universal_message_id)
+
+cosmetic_sentence_sample %>% distinct(universal_message_id) %>% nrow()
+cosmetic_sample_sentence_id <- cosmetic_sentence_sample %>% pull(rowid)
+cosmetic_sentences_embeddings_sample <- cosmetic_sentences_embeddings[cosmetic_sample_sentence_id, ]
+
+nrow(cosmetic_sentences_embeddings_sample)
+
+library(BertopicR)
+reducer <- BertopicR::bt_make_reducer_umap(n_neighbours = 12, n_components = 2L, metric = "cosine")
+cosmetic_sample_id <- cosmetic_sample %>% pull(rowid)
+cosmetic_embeddings_sample <- cosmetic_embeddings[cosmetic_sample_id,]
+cosmetic_reduced <- BertopicR::bt_do_reducing(reducer, cosmetic_embeddings_sample)
+
+cosmetic_sample <- cosmetic_sample %>%
+  select(-c(V1, V2)) %>%
+  mutate(V1 = cosmetic_reduced[,1],
+         V2 = cosmetic_reduced[,2])
+
+cosmetic_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df_sample.rds")
+
+cosmetic_sentence_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_sample.rds")
+
+cosmetic_sentences_embeddings_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_embeddings_sample.rds")
+```
+
+Automotive
+```{r}
+set.seed(123)
+
+automotive_data <-
+  readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_df.rds") %>%
+  mutate(rowid = row_number())
+
+automotive_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_sentences.rds") %>%
+  mutate(rowid = row_number())
+
+automotive_sentences_embeddings <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_sentences_embeddings.rds")
+
+automotive_embeddings <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/automotive_further_cleaning_embeddings.csv")
+
+automotive_sample <- automotive_data %>% sample_n(5000)
+automotive_sentence_sample <- automotive_sentences %>%
+  filter(universal_message_id %in% automotive_sample$universal_message_id)
+
+automotive_sentence_sample %>% distinct(universal_message_id) %>% nrow()
+automotive_sample_sentence_id <- automotive_sentence_sample %>% pull(rowid)
+automotive_sentences_embeddings_sample <- automotive_sentences_embeddings[automotive_sample_sentence_id, ]
+
+nrow(automotive_sentences_embeddings_sample) == nrow(automotive_sentence_sample) 
+
+reducer <- BertopicR::bt_make_reducer_umap(n_neighbours = 12, n_components = 2L, metric = "cosine")
+automotive_sample_id <- automotive_sample %>% pull(rowid)
+automotive_embeddings_sample <- automotive_embeddings[automotive_sample_id,]
+automotive_reduced <- BertopicR::bt_do_reducing(reducer, automotive_embeddings_sample)
+
+automotive_sample <- automotive_sample %>%
+  select(-c(V1, V2)) %>%
+  mutate(V1 = automotive_reduced[,1],
+         V2 = automotive_reduced[,2])
+
+automotive_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_df_sample.rds")
+
+automotive_sentence_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_sentences_sample.rds")
+
+automotive_sentences_embeddings_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_sentences_embeddings_sample.rds")
+
+```
+
+food and beverage
+```{r}
+set.seed(123)
+
+food_data <-
+  readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_df.rds") %>%
+  mutate(rowid = row_number())
+
+food_sentences <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_sentences.rds") %>%
+  mutate(rowid = row_number())
+
+food_sentences_embeddings <- readr::read_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_sentences_embeddings.rds")
+
+food_embeddings <- readr::read_csv("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/food_beverage_further_cleaning_embeddings.csv")
+
+
+food_sample <- food_data %>% sample_n(5000)
+food_sentence_sample <- food_sentences %>%
+  filter(universal_message_id %in% food_sample$universal_message_id)
+
+food_sentence_sample %>% distinct(universal_message_id) %>% nrow()
+food_sample_sentence_id <- food_sentence_sample %>% pull(rowid)
+food_sentences_embeddings_sample <- food_sentences_embeddings[food_sample_sentence_id, ]
+
+nrow(food_sentences_embeddings_sample)
+
+reducer <- BertopicR::bt_make_reducer_umap(n_neighbours = 12, n_components = 2L, metric = "cosine")
+food_sample_id <- food_sample %>% pull(rowid)
+food_embeddings_sample <- food_embeddings[food_sample_id,]
+food_reduced <- BertopicR::bt_do_reducing(reducer, food_embeddings_sample)
+
+food_sample <- food_sample %>%
+  select(-c(V1, V2)) %>%
+  mutate(V1 = food_reduced[,1],
+         V2 = food_reduced[,2])
+
+food_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_df_sample.rds")
+
+food_sentence_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_sentences_sample.rds")
+
+food_sentences_embeddings_sample %>%
+  readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_sentences_embeddings_sample.rds")
+
+```
