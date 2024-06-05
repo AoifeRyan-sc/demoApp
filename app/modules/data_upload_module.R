@@ -87,7 +87,6 @@ dataUploadServer <- function(id, r){
       r$sentence_df <- sentence_df
       r$sentence_embeddings <- sentence_embeddings
       r$input_dataset <- input$dataset
-)
       })
   
     
