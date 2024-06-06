@@ -34,8 +34,8 @@ umapColourCreate <- function(df){
     option = "B", direction = 1
   )
   # colours <- hcl.colors(n = length(topics)
-                        # palette = "Blue-Red 3"
-                        # )
+  # palette = "Blue-Red 3"
+  # )
   
   
   names(colours) <- topics
@@ -77,16 +77,22 @@ umapClusterLookup <- function(df, colours){
 
 umapCreateHoverText <- function(df, colours){
   
-  col_df <- data.frame(
-    # kmeans_topic_title = names(colours),
-    topic_title = names(colours),
-    colour_map = unname(colours),
-    row.names = NULL
-  )
-  
-  df <- df %>%
-    # dplyr::left_join(col_df, by = "kmeans_topic_title") 
-    dplyr::left_join(col_df, by = "topic_title") 
+  if (length(colours) > 1){
+    col_df <- data.frame(
+      # kmeans_topic_title = names(colours),
+      topic_title = names(colours),
+      colour_map = unname(colours),
+      row.names = NULL
+    )
+    
+    df <- df %>%
+      # dplyr::left_join(col_df, by = "kmeans_topic_title") 
+      dplyr::left_join(col_df, by = "topic_title") 
+  } else {
+    
+    df <- df %>% 
+      dplyr::mutate(colour_map = colours)
+  }
   
   hover_text <- paste0(
     "<span style='display: inline-block; background-color: grey; padding: 10px; border-radius: 10px;width: 200px; text-align: center;'>",
@@ -121,29 +127,29 @@ createUmapLayout <- function(p){
 
 createClusterLabels <- function(p, cluster_lookup){
   
-cluster_lookup$formatted_text <- sprintf("<b>%s</b>", cluster_lookup$label)
-shadow_positions <- rbind(expand.grid(rep(list(c(1, -1)), 2)), 
-                          c(1,0), c(-1,0), c(0,1), c(0,-1))
-                          # expand.grid(rep(list(c(1, 0)), 2)))
-
-for (i in 1:6){
-  p <- p %>%
-    plotly::add_annotations( # white shadow on cluster labels
-      x = cluster_lookup$centroid_x,  # slight offset for the shadow
-      y = cluster_lookup$centroid_y,  # slight offset for the shadow
-      # text = cluster_lookup$label,
-      text = cluster_lookup$formatted_text,
-      showarrow = FALSE,
-      opacity = 1,
-      # xshift = 1, yshift = -1, # Adjust shadow position
-      xshift = shadow_positions$Var1[i], yshift = shadow_positions$Var2[i],
-      font = list(size = 16, family = "Cinzel", color = "white")
-    )
-}
+  cluster_lookup$formatted_text <- sprintf("<b>%s</b>", cluster_lookup$label)
+  shadow_positions <- rbind(expand.grid(rep(list(c(1, -1)), 2)), 
+                            c(1,0), c(-1,0), c(0,1), c(0,-1))
+  # expand.grid(rep(list(c(1, 0)), 2)))
   
-
+  for (i in 1:6){
+    p <- p %>%
+      plotly::add_annotations( # white shadow on cluster labels
+        x = cluster_lookup$centroid_x,  # slight offset for the shadow
+        y = cluster_lookup$centroid_y,  # slight offset for the shadow
+        # text = cluster_lookup$label,
+        text = cluster_lookup$formatted_text,
+        showarrow = FALSE,
+        opacity = 1,
+        # xshift = 1, yshift = -1, # Adjust shadow position
+        xshift = shadow_positions$Var1[i], yshift = shadow_positions$Var2[i],
+        font = list(size = 16, family = "Cinzel", color = "white")
+      )
+  }
+  
+  
   for (i in 1:nrow(cluster_lookup)) { # text infront of shadow
-  
+    
     p <- p %>% plotly::add_annotations(
       x = cluster_lookup$centroid_x[i],
       y = cluster_lookup$centroid_y[i],
@@ -156,8 +162,8 @@ for (i in 1:6){
       )
     )
   }
- 
- return(p)
+  
+  return(p)
 }
 
 createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
@@ -171,10 +177,11 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
     grey_highlight <- NULL
   } else {
     topic_count <- df %>%
-      dplyr::group_by(hdb_topic_title) %>%
+      dplyr::group_by(hdb_topic_title, hdb_topic) %>%
       dplyr::summarise(n = dplyr::n()) %>%
       dplyr::arrange(desc(n)) %>%
-      head(10)
+      dplyr::filter(hdb_topic != -1) %>%
+      head(12)
     
     grey_highlight <- NULL
     
@@ -199,26 +206,24 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
       #   dplyr::mutate(topic_title = hdb_topic_title) %>%
       #   dplyr::bind_rows(small_topics, .id = "id")
       grey_df <- grey_df %>% dplyr::mutate(topic_title = hdb_topic_title)
-        
-
+      
+      
     }
     
     grey_df <- df %>%
       dplyr::mutate(topic_title = hdb_topic_title) %>%
       dplyr::filter(!topic_title %in% topic_count$hdb_topic_title)
-    print(nrow(grey_df))
     
     df <- df %>% 
       dplyr::mutate(topic_title = hdb_topic_title) %>%
       dplyr::filter(topic_title %in% topic_count$hdb_topic_title)
-    print(nrow(df))
-      # dplyr::anti_join(grey)
-      # dplyr::mutate(topic_title = hdb_topic_title,
-      #               topic_title = dplyr::case_when(
-      #                 topic_title %in% topic_count$hdb_topic_title ~
-      #                   topic_title,
-      #                 TRUE ~ ""
-                    # )) 
+    # dplyr::anti_join(grey)
+    # dplyr::mutate(topic_title = hdb_topic_title,
+    #               topic_title = dplyr::case_when(
+    #                 topic_title %in% topic_count$hdb_topic_title ~
+    #                   topic_title,
+    #                 TRUE ~ ""
+    # )) 
   }
   
   
@@ -230,22 +235,22 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
   cluster_lookup <- umapClusterLookup(df, 
                                       # colour_darker
                                       colour_lighter
-                                      ) # create cluster label lookup
+  ) # create cluster label lookup
   
   if(is.null(highlight_df)){
     plot_df <- df 
     size = 4
   } else{
     plot_df <- highlight_df
-    size = 10
+    size = 8
   }
   
   plot_df <- plot_df %>%
     dplyr::mutate(hover_text = umapCreateHoverText(plot_df, colours))
-  nrow(plot_df)
+  
   p <- plotly::plot_ly(
     data = plot_df,
-    width = 1000, height = 650,
+    width = 1100, height = 650,
     x = ~V1, y = ~V2,
     key = ~universal_message_id, 
     type = "scattergl",
@@ -265,39 +270,14 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
     showlegend = TRUE
   ) 
   
-  if (!is.null(grey_df)){
-    grey_df <- grey_df %>% dplyr::mutate(hover_text = "",
-                                         topic_title = "")
-    nrow(grey_df)
-    
-    p <- p %>%
-      plotly::add_trace(data = grey_df,
-                        x = ~V1, y = ~V2,
-                        name = 'No search similarity',
-                        type = "scattergl",
-                        mode = "markers",
-                        key = ~universal_message_id,
-                        showlegend = TRUE,
-                        marker = list(
-                          size = 4,
-                          opacity = 0.3,
-                          # opacity = 0.4, size = 4, 
-                                      # color = "#ececec",
-                          # color = "red",
-                                      color = "#cccccc",
-                                      showlegend = TRUE),
-                        hoverinfo = "skip")
-    
-  }
-  
   if (!is.null(grey_highlight)){
     
     grey_highlight <- grey_highlight %>%
       # dplyr::mutate(hover_text = umapCreateHoverText(grey_highlight, colours))
-      dplyr::mutate(hover_text = text_clean,
-                    topic_title = "")
+      dplyr::mutate(topic_title = "other")
     
-    print(nrow(grey_highlight))
+    grey_highlight <- grey_highlight %>% 
+      dplyr::mutate(hover_text = umapCreateHoverText(grey_highlight, "#cccccc"))
     
     p <- p %>%
       plotly::add_trace(data = grey_highlight,
@@ -311,21 +291,51 @@ createUmap <- function(df, highlight_df = NULL, grey_df = NULL, cluster_type){
                         marker = list(opacity = 0.6, size = 10, 
                                       # color = "#cccccc", "#bfbfbf", "#b5b5b5", "#bababa"
                                       # color = "#b5b5b5",
-                                      color = "#FFFDD0",
+                                      color = "#cccccc",
                                       showlegend = TRUE),
                         hoverinfo = "text",
                         hoverlabel = list(bgcolor = 'rgba(255,255,255,0.75)',
                                           font = list(family = "Cinzel-Regular")
                         )
                         # visible = "legendonly"
-                        )
+      )
+  }
+  
+  if (!is.null(grey_df)){
+    grey_df <- grey_df %>% dplyr::mutate(hover_text = "",
+                                         topic_title = "")
+    
+    if (cluster_type == "kmeans"){
+      grey_label = "No search similarity"
+    } else {
+      grey_label = "other"
+    }
+    
+    p <- p %>%
+      plotly::add_trace(data = grey_df,
+                        x = ~V1, y = ~V2,
+                        name = grey_label,
+                        type = "scattergl",
+                        mode = "markers",
+                        key = ~universal_message_id,
+                        showlegend = TRUE,
+                        marker = list(
+                          size = 4,
+                          opacity = 0.3,
+                          # opacity = 0.4, size = 4, 
+                          color = "#ececec",
+                          # color = "red",
+                          # color = "#cccccc",
+                          showlegend = TRUE),
+                        hoverinfo = "skip")
+    
   }
   
   p <- createUmapLayout(p)
-   
+  
   
   p <- createClusterLabels(p = p, cluster_lookup = cluster_lookup)
-
+  
   
   return(p)
   

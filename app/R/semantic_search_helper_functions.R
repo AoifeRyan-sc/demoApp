@@ -67,11 +67,12 @@ process_sentences_old <- function(doc_id, example_sentences) {
 
 
 process_sentences <- function(doc_id, example_sentences) {
+  print(nrow(doc_id))
   if (nrow(doc_id) == 0){
     return(NULL)
   } else {
     doc_id %>%
-      dplyr::select(-text_with_breaks) %>%
+      # dplyr::select(-text_with_breaks) %>%
       dplyr::group_by(universal_message_id) %>% # Change to appropriate document column
       dplyr::mutate(text_copy = dplyr::first(text_clean)) %>%
       dplyr::ungroup() %>%
@@ -132,21 +133,21 @@ cosine_calculation_threshold_sentence <- function(reference_statement,
   ref_sentence <- reference_statement
   
   reference_vector <- embed_query(query = ref_sentence, embedding_model = embedding_model)
-  
+  # print(paste0("ref vec", reference_vector))
   sentence_dot_products <- sentence_matrix %*% reference_vector
-  
+  # print(paste0("dor prod", sentence_dot_products))
   sentence_norm_matrix <- sqrt(rowSums(sentence_matrix ^ 2))
-  
+  # print(paste0("norm mat", class(sentence_norm_matrix)))
   reference_norm <- sqrt(sum(reference_vector ^ 2))
-  
+  # print(paste0("ref norm", reference_norm))
   sentence_cosine_sims <- sentence_dot_products / (sentence_norm_matrix * reference_norm)
-  
+  # print(paste0("cosine sim", class(sentence_cosine_sims)))
   current_sentence_candidates <- df %>%
     dplyr::mutate(cosine_sim = as.numeric(sentence_cosine_sims)) %>%
     dplyr::relocate(cosine_sim) %>%
     dplyr::filter(cosine_sim > cosine_sim_threshold) %>%
     dplyr::arrange(desc(cosine_sim))
-  
+  print(paste0("sentence candidates: ", class(current_sentence_candidates)))
   return(current_sentence_candidates)
   
 }

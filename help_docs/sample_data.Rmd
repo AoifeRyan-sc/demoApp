@@ -42,10 +42,16 @@ cosmetic_sample <- cosmetic_sample %>%
   mutate(V1 = cosmetic_reduced[,1],
          V2 = cosmetic_reduced[,2])
 
+cols_keep <- cosmetic_sample %>% 
+  select(-interesting_topics) %>%
+  colnames()
+
 cosmetic_sample %>%
+  select(all_of(cols_keep)) %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_df_sample.rds")
 
 cosmetic_sentence_sample %>%
+  select(c(all_of(cols_keep), sentences)) %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/cosmetic_sentences_sample.rds")
 
 cosmetic_sentences_embeddings_sample %>%
@@ -87,10 +93,24 @@ automotive_sample <- automotive_sample %>%
   mutate(V1 = automotive_reduced[,1],
          V2 = automotive_reduced[,2])
 
-automotive_sample %>%
+
+automotive_cols_keep <- cols_keep[cols_keep != "text_with_breaks"]
+automotive_sample %>% 
+  # rename(
+    # hdb_topic = hdbscan_topic,
+         # hdb_topic_title = hdbscan_topic_title,
+         # text_clean = text_copy,
+         # sentences = sentence) %>%
+  select(all_of(automotive_cols_keep)) %>%
+  mutate(text_with_breaks = lapply(text_clean, insert_line_breaks)) %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_df_sample.rds")
 
-automotive_sentence_sample %>%
+automotive_sentence_sample %>% 
+  rename(hdb_topic = hdbscan_topic,
+         hdb_topic_title = hdbscan_topic_title,
+         text_clean = text_copy,
+         sentences = sentence) %>%
+  select(c(all_of(automotive_cols_keep), sentences)) %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/automotive_sentences_sample.rds")
 
 automotive_sentences_embeddings_sample %>%
@@ -135,9 +155,16 @@ food_sample <- food_sample %>%
          V2 = food_reduced[,2])
 
 food_sample %>%
+  select(all_of(automotive_cols_keep)) %>%
+  mutate(text_with_breaks = lapply(text_clean, insert_line_breaks)) %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_df_sample.rds")
 
 food_sentence_sample %>%
+   rename(hdb_topic = hdbscan_topic,
+         hdb_topic_title = hdbscan_topic_title,
+         text_clean = text_copy,
+         sentences = sentence) %>%
+  select(c(all_of(automotive_cols_keep), sentences)) %>%
   readr::write_rds("~/Google Drive/My Drive/Share_Clients/data_science_project_work/hackafun/data/cleaned_data/for_app/food_beverage_sentences_sample.rds")
 
 food_sentences_embeddings_sample %>%

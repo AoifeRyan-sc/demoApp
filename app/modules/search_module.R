@@ -102,7 +102,12 @@ searchServer <- function(id, r) {
         shiny::need(grepl("^[a-zA-Z0-9 ]*$", input$search_term), 
                     message = FALSE)
         )
-      semantic_similarity_output <- cosine_calculation_threshold_sentence(
+      
+      print(paste("sentence_embedding:", class(r$sentence_embeddings())))
+      print(paste("sentence_df:", class(r$sentence_df())))
+      print(paste("df:", class(r$df())))
+      # semantic_similarity_output <- 
+      semantic_sim_candidates <- cosine_calculation_threshold_sentence(
         reference_statement = input$search_term,
         cosine_sim_threshold = input$semantic_sim_threshold,
         # reference_statement = "face",
@@ -112,10 +117,13 @@ searchServer <- function(id, r) {
         df = r$sentence_df()
         # sentence_matrix = as.matrix(cosmetic_sentences_embeddings),
         # df = cosmetic_sentences
-        ) %>% 
+        ) 
         # process_sentences(cosmetic_sentences)
-        process_sentences(r$sentence_df())
+      
+      print(paste0("semantic aim class: ", nrow(semantic_sim_candidates)))
+      semantic_similarity_output <- process_sentences(semantic_sim_candidates, r$sentence_df())
         
+      print(paste0("semantic sim:", class(semantic_similarity_output)))
        keyword_search_output <- keyword_search(
          df = r$df(),
          # df = cosmetic_data,

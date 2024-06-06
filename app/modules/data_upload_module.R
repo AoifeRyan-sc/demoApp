@@ -36,7 +36,7 @@ dataUploadServer <- function(id, r){
         temp_file <- tempfile(fileext = ".rds")
         googledrive::drive_download(file, path = temp_file, overwrite = TRUE)
 
-        category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
+        # category <- sub("for_app/([a-z]+)_.*", "\\1", file_path)
         
         readRDS(temp_file)
     })
